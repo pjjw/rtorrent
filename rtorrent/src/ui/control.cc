@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,48 +34,21 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef LIBTORRENT_TRACKER_TRACKER_HTTP_H
-#define LIBTORRENT_TRACKER_TRACKER_HTTP_H
+#include "config.h"
 
-#include <iosfwd>
+#include "control.h"
 
-#include "torrent/bencode.h"
+namespace ui {
 
-#include "tracker_base.h"
-
-namespace torrent {
-
-class Http;
-
-class TrackerHttp : public TrackerBase {
-public:
-  TrackerHttp(TrackerInfo* info, const std::string& url);
-  ~TrackerHttp();
-  
-  virtual bool        is_busy() const;
-
-  virtual void        send_state(TrackerInfo::State state,
-				 uint64_t down,
-				 uint64_t up,
-				 uint64_t left);
-
-  virtual void        close();
-
-private:
-  void                receive_done();
-  void                receive_failed(std::string msg);
-
-  static void         escape_string(const std::string& src, std::ostream& stream);
-
-  static PeerInfo     parse_peer(const Bencode& b);
-
-  void                parse_peers_normal(PeerList& l, const Bencode::List& b);
-  void                parse_peers_compact(PeerList& l, const std::string& s);
-
-  Http*               m_get;
-  std::stringstream*  m_data;
-};
-
+// I think it should be safe to initiate the shutdown from anywhere,
+// but if it isn't, use a delay task.
+void
+Control::receive_shutdown() {
+  if (!m_shutdownReceived)
+    torrent::listen_close();
+    
+  m_core.shutdown(m_shutdownReceived);
+  m_shutdownReceived = true;
 }
 
-#endif
+}

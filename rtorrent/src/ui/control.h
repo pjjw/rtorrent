@@ -37,6 +37,8 @@
 #ifndef RTORRENT_UI_CONTROL_H
 #define RTORRENT_UI_CONTROL_H
 
+#include <torrent/torrent.h>
+
 #include "core/manager.h"
 #include "display/manager.h"
 #include "input/manager.h"
@@ -49,13 +51,15 @@ class Control {
 public:
   Control() : m_shutdownReceived(false) {}
   
-  bool                get_shutdown_received()       { return m_shutdownReceived; }
-  void                set_shutdown_received(bool v) { m_shutdownReceived = v; }
+  bool                is_shutdown_completed()       { return m_shutdownReceived && torrent::is_inactive(); }
+  bool                is_shutdown_received()        { return m_shutdownReceived; }
 
   Root&               get_ui()                      { return m_ui; }
   core::Manager&      get_core()                    { return m_core; }
   display::Manager&   get_display()                 { return m_display; }
   input::Manager&     get_input()                   { return m_input; }
+
+  void                receive_shutdown();
 
 private:
   Control(const Control&);
