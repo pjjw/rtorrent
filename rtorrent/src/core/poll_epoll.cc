@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -36,80 +36,61 @@
 
 #include "config.h"
 
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+#include "poll_epoll.h"
 
-#include "torrent/exceptions.h"
+namespace core {
 
-#include "listen.h"
-#include "manager.h"
-#include "socket_address.h"
+PollEPoll::PollEPoll() {
+}
 
-namespace torrent {
+PollEPoll::~PollEPoll() {
+}
+
+void
+PollEPoll::open(torrent::Event* event) {
+}
+
+void
+PollEPoll::close(torrent::Event* event) {
+}
 
 bool
-Listen::open(uint16_t first, uint16_t last, SocketAddress sa) {
-  close();
-
-  if (first == 0 || last == 0 || first > last)
-    throw input_error("Tried to open listening port with an invalid range");
-
-  if (!get_fd().open_stream() || !get_fd().set_nonblock())
-    throw local_error("Could not allocate socket for listening");
-
-  for (uint16_t i = first; i <= last; ++i) {
-    sa.set_port(i);
-
-    if (get_fd().bind(sa) && get_fd().listen(50)) {
-      m_port = i;
-
-      pollCustom->open(this);
-      pollCustom->insert_read(this);
-      pollCustom->insert_error(this);
-
-      return true;
-    }
-  }
-
-  get_fd().close();
-  get_fd().clear();
-
+PollEPoll::in_read(torrent::Event* event) {
   return false;
 }
 
-void Listen::close() {
-  if (!get_fd().is_valid())
-    return;
-
-  pollCustom->remove_read(this);
-  pollCustom->remove_error(this);
-  pollCustom->close(this);
-
-  get_fd().close();
-  get_fd().clear();
-  
-  m_port = 0;
+bool
+PollEPoll::in_write(torrent::Event* event) {
+  return false;
 }
-  
-void
-Listen::event_read() {
-  SocketAddress sa;
-  SocketFd fd;
 
-  while ((fd = get_fd().accept(&sa)).is_valid())
-    m_slotIncoming(fd, sa);
+bool
+PollEPoll::in_error(torrent::Event* event) {
+  return false;
 }
 
 void
-Listen::event_write() {
-  throw internal_error("Listener does not support write()");
+PollEPoll::insert_read(torrent::Event* event) {
 }
 
 void
-Listen::event_error() {
-  throw local_error("Listener port recived exception");
+PollEPoll::insert_write(torrent::Event* event) {
+}
+
+void
+PollEPoll::insert_error(torrent::Event* event) {
+}
+
+void
+PollEPoll::remove_read(torrent::Event* event) {
+}
+
+void
+PollEPoll::remove_write(torrent::Event* event) {
+}
+
+void
+PollEPoll::remove_error(torrent::Event* event) {
 }
 
 }

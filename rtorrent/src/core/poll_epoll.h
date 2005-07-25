@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,47 +34,42 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef LIBTORRENT_NET_POLL_SELECT_H
-#define LIBTORRENT_NET_POLL_SELECT_H
+#ifndef RTORRENT_CORE_POLL_EPOLL_H
+#define RTORRENT_CORE_POLL_EPOLL_H
 
-#include <sys/select.h>
-#include <sys/types.h>
+#include <torrent/poll.h>
 
-#include "socket_base.h"
-#include "socket_set.h"
-#include "torrent/poll.h"
+namespace core {
 
-namespace torrent {
+class PollEPoll : public torrent::Poll {
+  PollEPoll();
+  virtual ~PollEPoll();
 
-class PollSelect : public Poll {
-public:
-  PollSelect();
-  virtual ~PollSelect();
+  // Add configuration options for doing stuff like setting max open
+  // sockets etc?
 
-  void                set_open_max(int s);
+  // torrent::Event::get_fd() is guaranteed to be valid and remain constant
+  // from open(...) is called to close(...) returns.
+  virtual void        open(torrent::Event* event);
+  virtual void        close(torrent::Event* event);
 
-  int                 mark(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
-  void                work(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet, int maxFd);
+  // Functions for checking whetever the torrent::Event is listening to r/w/e?
+  virtual bool        in_read(torrent::Event* event);
+  virtual bool        in_write(torrent::Event* event);
+  virtual bool        in_error(torrent::Event* event);
 
-  virtual void        open(Event* event);
-  virtual void        close(Event* event);
+  // These functions may be called on 'event's that might, or might
+  // not, already be in the set.
+  virtual void        insert_read(torrent::Event* event);
+  virtual void        insert_write(torrent::Event* event);
+  virtual void        insert_error(torrent::Event* event);
 
-  virtual bool        in_read(Event* event);
-  virtual bool        in_write(Event* event);
-  virtual bool        in_error(Event* event);
-
-  virtual void        insert_read(Event* event);
-  virtual void        insert_write(Event* event);
-  virtual void        insert_error(Event* event);
-
-  virtual void        remove_read(Event* event);
-  virtual void        remove_write(Event* event);
-  virtual void        remove_error(Event* event);
+  virtual void        remove_read(torrent::Event* event);
+  virtual void        remove_write(torrent::Event* event);
+  virtual void        remove_error(torrent::Event* event);
 
 private:
-  SocketSet           m_readSet;
-  SocketSet           m_writeSet;
-  SocketSet           m_exceptSet;
+  int                 m_fd;
 };
 
 }

@@ -34,82 +34,59 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef LIBTORRENT_NET_POLL_SELECT_H
+#define LIBTORRENT_NET_POLL_SELECT_H
 
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+#include <sys/select.h>
+#include <sys/types.h>
 
-#include "torrent/exceptions.h"
-
-#include "listen.h"
-#include "manager.h"
-#include "socket_address.h"
+#include "poll.h"
 
 namespace torrent {
 
-bool
-Listen::open(uint16_t first, uint16_t last, SocketAddress sa) {
-  close();
+// The default Poll implementation using fd_set's.
+//
+// You should call torrent::perform() (or whatever the function will
+// be called) immidiately before and after the call to work(...). This
+// ensures we dealt with scheduled tasks and updated the cache'ed time.
 
-  if (first == 0 || last == 0 || first > last)
-    throw input_error("Tried to open listening port with an invalid range");
+class SocketSet;
 
-  if (!get_fd().open_stream() || !get_fd().set_nonblock())
-    throw local_error("Could not allocate socket for listening");
+class PollSelect : public Poll {
+public:
+  PollSelect();
+  virtual ~PollSelect();
 
-  for (uint16_t i = first; i <= last; ++i) {
-    sa.set_port(i);
+  void                set_open_max(int s);
 
-    if (get_fd().bind(sa) && get_fd().listen(50)) {
-      m_port = i;
+  // Returns the largest fd marked.
+  int                 mark(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
+  void                work(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
 
-      pollCustom->open(this);
-      pollCustom->insert_read(this);
-      pollCustom->insert_error(this);
+  virtual void        open(Event* event);
+  virtual void        close(Event* event);
 
-      return true;
-    }
-  }
+  virtual bool        in_read(Event* event);
+  virtual bool        in_write(Event* event);
+  virtual bool        in_error(Event* event);
 
-  get_fd().close();
-  get_fd().clear();
+  virtual void        insert_read(Event* event);
+  virtual void        insert_write(Event* event);
+  virtual void        insert_error(Event* event);
 
-  return false;
-}
+  virtual void        remove_read(Event* event);
+  virtual void        remove_write(Event* event);
+  virtual void        remove_error(Event* event);
 
-void Listen::close() {
-  if (!get_fd().is_valid())
-    return;
+private:
+  PollSelect(const PollSelect&);
+  void operator = (const PollSelect&);
 
-  pollCustom->remove_read(this);
-  pollCustom->remove_error(this);
-  pollCustom->close(this);
-
-  get_fd().close();
-  get_fd().clear();
-  
-  m_port = 0;
-}
-  
-void
-Listen::event_read() {
-  SocketAddress sa;
-  SocketFd fd;
-
-  while ((fd = get_fd().accept(&sa)).is_valid())
-    m_slotIncoming(fd, sa);
-}
-
-void
-Listen::event_write() {
-  throw internal_error("Listener does not support write()");
-}
-
-void
-Listen::event_error() {
-  throw local_error("Listener port recived exception");
-}
+  SocketSet*          m_readSet;
+  SocketSet*          m_writeSet;
+  SocketSet*          m_exceptSet;
+};
 
 }
+
+#endif

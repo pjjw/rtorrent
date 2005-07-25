@@ -43,6 +43,10 @@
 #include "utils/timer.h"
 #include "curl_stack.h"
 
+namespace torrent {
+  class PollSelect;
+}
+
 namespace core {
 
 class CurlGet;
@@ -53,32 +57,34 @@ public:
   typedef sigc::slot1<void, int> SlotInt;
   typedef sigc::slot0<CurlGet*>  SlotFactory;
 
-  Poll() : m_readSet(new fd_set), m_writeSet(new fd_set), m_exceptSet(new fd_set) {}
-  ~Poll() { delete m_readSet; delete m_writeSet; delete m_exceptSet; }
+  Poll();
+  ~Poll();
 
-  void        poll(utils::Timer t);
+  void                poll(utils::Timer t);
 
-  SlotFactory get_http_factory();
+  SlotFactory         get_http_factory();
+  torrent::Poll*      get_torrent_poll()              { return reinterpret_cast<torrent::Poll*>(m_torrentPoll); }
 
-  void        slot_read_stdin(SlotInt s)      { m_slotReadStdin = s; }
-  void        slot_select_interrupted(Slot s) { m_slotSelectInterrupted = s; }
+  void                slot_read_stdin(SlotInt s)      { m_slotReadStdin = s; }
+  void                slot_select_interrupted(Slot s) { m_slotSelectInterrupted = s; }
 
 private:
   Poll(const Poll&);
   void operator = (const Poll&);
 
-  void        work();
-  void        work_input();
+  void                work();
+  void                work_input();
 
-  SlotInt     m_slotReadStdin;
-  Slot        m_slotSelectInterrupted;
+  SlotInt             m_slotReadStdin;
+  Slot                m_slotSelectInterrupted;
 
-  int         m_maxFd;
-  fd_set*     m_readSet;
-  fd_set*     m_writeSet;
-  fd_set*     m_exceptSet;
+  int                 m_maxFd;
+  fd_set*             m_readSet;
+  fd_set*             m_writeSet;
+  fd_set*             m_exceptSet;
 
-  CurlStack   m_curlStack;
+  CurlStack            m_curlStack;
+  torrent::PollSelect* m_torrentPoll;
 };
 
 }
