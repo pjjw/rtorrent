@@ -39,8 +39,7 @@
 
 #include <sys/select.h>
 #include <sys/types.h>
-
-#include "poll.h"
+#include <torrent/poll.h>
 
 namespace torrent {
 

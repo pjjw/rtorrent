@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// libTorrent - BitTorrent library
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,19 +34,27 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_POLL_EPOLL_H
-#define RTORRENT_CORE_POLL_EPOLL_H
+#ifndef LIBTORRENT_TORRENT_POLL_EPOLL_H
+#define LIBTORRENT_TORRENT_POLL_EPOLL_H
 
+#include <inttypes.h>
+#include <vector>
 #include <torrent/poll.h>
 
-namespace core {
+namespace torrent {
 
 class PollEPoll : public torrent::Poll {
-  PollEPoll();
+public:
+  typedef std::vector<uint32_t> Table;
+
+  static PollEPoll*   create();
+
   virtual ~PollEPoll();
 
-  // Add configuration options for doing stuff like setting max open
-  // sockets etc?
+  int                 wait(int msec);
+  void                work();
+
+  int                 get_fd() { return m_fd; }
 
   // torrent::Event::get_fd() is guaranteed to be valid and remain constant
   // from open(...) is called to close(...) returns.
@@ -69,7 +77,20 @@ class PollEPoll : public torrent::Poll {
   virtual void        remove_error(torrent::Event* event);
 
 private:
+  PollEPoll(int fd, int maxEvents, int maxSockets);
+
+  inline uint32_t     get_mask(Event* e);
+  inline void         set_mask(Event* e, uint32_t m);
+
+  inline void         modify(torrent::Event* event, int op, uint32_t mask);
+
   int                 m_fd;
+
+  int                 m_maxEvents;
+  int                 m_waitingEvents;
+
+  Table               m_table;
+  void*               m_events;
 };
 
 }
