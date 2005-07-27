@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,55 +34,32 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef LIBTORRENT_NET_POLL_SELECT_H
-#define LIBTORRENT_NET_POLL_SELECT_H
+#ifndef RTORRENT_INPUT_INPUT_EVENT_H
+#define RTORRENT_INPUT_INPUT_EVENT_H
 
-#include <sys/select.h>
-#include <sys/types.h>
+#include <sigc++/slot.h>
+#include <torrent/event.h>
 #include <torrent/poll.h>
 
-namespace torrent {
+namespace input {
 
-// The default Poll implementation using fd_set's.
-//
-// You should call torrent::perform() (or whatever the function will
-// be called) immidiately before and after the call to work(...). This
-// ensures we dealt with scheduled tasks and updated the cache'ed time.
-
-class SocketSet;
-
-class PollSelect : public Poll {
+class InputEvent : public torrent::Event {
 public:
-  static PollSelect*  create(int maxOpenSockets);
-  virtual ~PollSelect();
+  typedef sigc::slot<void, int> SlotInt;
 
-  // Returns the largest fd marked.
-  unsigned int        fdset(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
-  void                perform(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
+  InputEvent(int fd) { m_fileDesc = fd; }
 
-  virtual void        open(Event* event);
-  virtual void        close(Event* event);
+  void                insert(torrent::Poll* p);
+  void                remove(torrent::Poll* p);
 
-  virtual bool        in_read(Event* event);
-  virtual bool        in_write(Event* event);
-  virtual bool        in_error(Event* event);
+  void                event_read();
+  void                event_write();
+  void                event_error();
 
-  virtual void        insert_read(Event* event);
-  virtual void        insert_write(Event* event);
-  virtual void        insert_error(Event* event);
-
-  virtual void        remove_read(Event* event);
-  virtual void        remove_write(Event* event);
-  virtual void        remove_error(Event* event);
+  void                slot_pressed(SlotInt s) { m_slotPressed = s; }
 
 private:
-  PollSelect() {}
-  PollSelect(const PollSelect&);
-  void operator = (const PollSelect&);
-
-  SocketSet*          m_readSet;
-  SocketSet*          m_writeSet;
-  SocketSet*          m_exceptSet;
+  SlotInt             m_slotPressed;
 };
 
 }

@@ -38,6 +38,7 @@
 #define RTORRENT_CORE_CURL_STACK_H
 
 #include <list>
+#include <sigc++/slot.h>
 
 namespace core {
 
@@ -47,34 +48,37 @@ class CurlStack {
  public:
   friend class CurlGet;
 
-  typedef std::list<CurlGet*> CurlGetList;
+  typedef std::list<CurlGet*>   CurlGetList;
+  typedef sigc::slot0<CurlGet*> SlotFactory;
 
   CurlStack();
   ~CurlStack();
 
-  int         get_size() const { return m_size; }
-  bool        is_busy() const  { return !m_getList.empty(); }
+  int                 get_size() const { return m_size; }
+  bool                is_busy() const  { return !m_getList.empty(); }
 
-  void        perform();
+  void                perform();
 
   // TODO: Set fd_set's only once?
-  void        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds, int* maxFd);
+  unsigned int        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds);
 
-  static void init();
-  static void cleanup();
+  SlotFactory         get_http_factory();
+
+  static void         global_init();
+  static void         global_cleanup();
 
  protected:
-  void        add_get(CurlGet* get);
-  void        remove_get(CurlGet* get);
+  void                add_get(CurlGet* get);
+  void                remove_get(CurlGet* get);
 
  private:
   CurlStack(const CurlStack&);
   void operator = (const CurlStack&);
 
-  void*       m_handle;
+  void*               m_handle;
 
-  int         m_size;
-  CurlGetList m_getList;
+  int                 m_size;
+  CurlGetList         m_getList;
 };
 
 }

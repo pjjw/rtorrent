@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,55 +34,30 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef LIBTORRENT_NET_POLL_SELECT_H
-#define LIBTORRENT_NET_POLL_SELECT_H
+#ifndef RTORRENT_CORE_POLL_MANAGER_SELECT_H
+#define RTORRENT_CORE_POLL_MANAGER_SELECT_H
 
-#include <sys/select.h>
-#include <sys/types.h>
-#include <torrent/poll.h>
+#include "poll_manager.h"
 
 namespace torrent {
+  class PollSelect;
+}
 
-// The default Poll implementation using fd_set's.
-//
-// You should call torrent::perform() (or whatever the function will
-// be called) immidiately before and after the call to work(...). This
-// ensures we dealt with scheduled tasks and updated the cache'ed time.
+namespace core {
 
-class SocketSet;
-
-class PollSelect : public Poll {
+class PollManagerSelect : public PollManager {
 public:
-  static PollSelect*  create(int maxOpenSockets);
-  virtual ~PollSelect();
+  static PollManagerSelect* create(int maxOpenSockets);
+  ~PollManagerSelect();
 
-  // Returns the largest fd marked.
-  unsigned int        fdset(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
-  void                perform(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
+  torrent::Poll*      get_torrent_poll();
 
-  virtual void        open(Event* event);
-  virtual void        close(Event* event);
-
-  virtual bool        in_read(Event* event);
-  virtual bool        in_write(Event* event);
-  virtual bool        in_error(Event* event);
-
-  virtual void        insert_read(Event* event);
-  virtual void        insert_write(Event* event);
-  virtual void        insert_error(Event* event);
-
-  virtual void        remove_read(Event* event);
-  virtual void        remove_write(Event* event);
-  virtual void        remove_error(Event* event);
+  void                poll(utils::Timer timeout);
 
 private:
-  PollSelect() {}
-  PollSelect(const PollSelect&);
-  void operator = (const PollSelect&);
+  PollManagerSelect(int maxOpenSockets) : PollManager(maxOpenSockets) {}
 
-  SocketSet*          m_readSet;
-  SocketSet*          m_writeSet;
-  SocketSet*          m_exceptSet;
+  torrent::PollSelect* m_poll;
 };
 
 }

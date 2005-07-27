@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,57 +34,40 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef LIBTORRENT_NET_POLL_SELECT_H
-#define LIBTORRENT_NET_POLL_SELECT_H
+#include "config.h"
 
-#include <sys/select.h>
-#include <sys/types.h>
-#include <torrent/poll.h>
+#include <ncurses.h>
 
-namespace torrent {
+#include "input_event.h"
 
-// The default Poll implementation using fd_set's.
-//
-// You should call torrent::perform() (or whatever the function will
-// be called) immidiately before and after the call to work(...). This
-// ensures we dealt with scheduled tasks and updated the cache'ed time.
+namespace input {
 
-class SocketSet;
-
-class PollSelect : public Poll {
-public:
-  static PollSelect*  create(int maxOpenSockets);
-  virtual ~PollSelect();
-
-  // Returns the largest fd marked.
-  unsigned int        fdset(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
-  void                perform(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
-
-  virtual void        open(Event* event);
-  virtual void        close(Event* event);
-
-  virtual bool        in_read(Event* event);
-  virtual bool        in_write(Event* event);
-  virtual bool        in_error(Event* event);
-
-  virtual void        insert_read(Event* event);
-  virtual void        insert_write(Event* event);
-  virtual void        insert_error(Event* event);
-
-  virtual void        remove_read(Event* event);
-  virtual void        remove_write(Event* event);
-  virtual void        remove_error(Event* event);
-
-private:
-  PollSelect() {}
-  PollSelect(const PollSelect&);
-  void operator = (const PollSelect&);
-
-  SocketSet*          m_readSet;
-  SocketSet*          m_writeSet;
-  SocketSet*          m_exceptSet;
-};
-
+void
+InputEvent::insert(torrent::Poll* p) {
+  p->open(this);
+  p->insert_read(this);
 }
 
-#endif
+void
+InputEvent::remove(torrent::Poll* p) {
+  p->remove_read(this);
+  p->close(this);
+}
+
+void
+InputEvent::event_read() {
+  int c = getch();
+
+  if (c != ERR)
+    m_slotPressed(c);
+}
+
+void
+InputEvent::event_write() {
+}
+
+void
+InputEvent::event_error() {
+}
+
+}

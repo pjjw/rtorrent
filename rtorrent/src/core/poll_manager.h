@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,55 +34,55 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef LIBTORRENT_NET_POLL_SELECT_H
-#define LIBTORRENT_NET_POLL_SELECT_H
+#ifndef RTORRENT_CORE_POLL_MANAGER_H
+#define RTORRENT_CORE_POLL_MANAGER_H
 
 #include <sys/select.h>
-#include <sys/types.h>
-#include <torrent/poll.h>
+#include <sigc++/signal.h>
+
+#include "curl_stack.h"
+#include "utils/timer.h"
 
 namespace torrent {
+  class Poll;
+}
 
-// The default Poll implementation using fd_set's.
-//
-// You should call torrent::perform() (or whatever the function will
-// be called) immidiately before and after the call to work(...). This
-// ensures we dealt with scheduled tasks and updated the cache'ed time.
+namespace core {
 
-class SocketSet;
+// CurlStack really should be somewhere else, but that won't happen
+// until they add an epoll friendly API.
 
-class PollSelect : public Poll {
+class PollManager {
 public:
-  static PollSelect*  create(int maxOpenSockets);
-  virtual ~PollSelect();
+  typedef sigc::signal0<void> Signal;
 
-  // Returns the largest fd marked.
-  unsigned int        fdset(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
-  void                perform(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
+  PollManager(int maxOpenSockets);
+  virtual ~PollManager();
 
-  virtual void        open(Event* event);
-  virtual void        close(Event* event);
+  unsigned int        get_max_open_sockets() const { return m_maxOpenSockets; }
+  CurlStack*          get_http_stack()             { return &m_httpStack; }
 
-  virtual bool        in_read(Event* event);
-  virtual bool        in_write(Event* event);
-  virtual bool        in_error(Event* event);
+  virtual torrent::Poll* get_torrent_poll() = 0;
 
-  virtual void        insert_read(Event* event);
-  virtual void        insert_write(Event* event);
-  virtual void        insert_error(Event* event);
+  virtual void        poll(utils::Timer timeout) = 0;
 
-  virtual void        remove_read(Event* event);
-  virtual void        remove_write(Event* event);
-  virtual void        remove_error(Event* event);
+  // Use a signal, connect checking for input and updating the display.
+  Signal&             signal_interrupted()         { return m_signalInterrupted; }
 
-private:
-  PollSelect() {}
-  PollSelect(const PollSelect&);
-  void operator = (const PollSelect&);
+protected:
+  PollManager(const PollManager&);
+  void operator = (const PollManager&);
 
-  SocketSet*          m_readSet;
-  SocketSet*          m_writeSet;
-  SocketSet*          m_exceptSet;
+  void                check_error();
+
+  unsigned int        m_maxOpenSockets;
+  CurlStack           m_httpStack;
+
+  fd_set*             m_readSet;
+  fd_set*             m_writeSet;
+  fd_set*             m_errorSet;
+
+  Signal              m_signalInterrupted;
 };
 
 }
