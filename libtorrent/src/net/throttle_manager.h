@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// libTorrent - BitTorrent library
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,50 +34,35 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_CURL_GET_H
-#define RTORRENT_CORE_CURL_GET_H
+#ifndef LIBTORRENT_NET_THROTTLE_MANAGER_H
+#define LIBTORRENT_NET_THROTTLE_MANAGER_H
 
-#include <iosfwd>
-#include <string>
-#include <curl/curl.h>
-#include <torrent/http.h>
-#include <sigc++/signal.h>
+#include "utils/task.h"
+#include "utils/timer.h"
 
-struct CURLMsg;
+namespace torrent {
 
-namespace core {
+class ThrottleList;
 
-class CurlStack;
+class ThrottleManager {
+public:
 
-class CurlGet : public torrent::Http {
- public:
-  friend class CurlStack;
+  ThrottleManager();
+  ~ThrottleManager();
 
-  CurlGet(CurlStack* s);
-  virtual ~CurlGet();
+  uint32_t            max_rate() const         { return m_maxRate; }
+  void                set_max_rate(uint32_t v);
 
-  static CurlGet*    new_object(CurlStack* s);
+  ThrottleList*       throttle_list()          { return m_throttleList; }
 
-  void               start();
-  void               close();
+private:
+  void                receive_tick();
 
-  bool               is_busy() { return m_handle; }
+  uint32_t            m_maxRate;
+  ThrottleList*       m_throttleList;
 
-  double             get_size_done();
-  double             get_size_total();
-
- protected:
-  CURL*              handle() { return m_handle; }
-
-  void               perform(CURLMsg* msg);
-
- private:
-  CurlGet(const CurlGet&);
-  void operator = (const CurlGet&);
-
-  CURL*              m_handle;
-
-  CurlStack*         m_stack;
+  Timer               m_timeLastTick;
+  TaskItem            m_taskTick;
 };
 
 }

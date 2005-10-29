@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// libTorrent - BitTorrent library
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,52 +34,61 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_CURL_GET_H
-#define RTORRENT_CORE_CURL_GET_H
+#include "config.h"
 
-#include <iosfwd>
-#include <string>
-#include <curl/curl.h>
-#include <torrent/http.h>
-#include <sigc++/signal.h>
+#include "throttle_list.h"
+#include "throttle_manager.h"
 
-struct CURLMsg;
+namespace torrent {
 
-namespace core {
+// Plans:
+//
+// Make ThrottleList do a callback when it needs more? This would
+// allow us to remove us from the task scheduler when we're full. Also
+// this would let us be abit more flexible with the interval.
 
-class CurlStack;
+ThrottleManager::ThrottleManager() :
+  m_maxRate(0),
+  m_throttleList(new ThrottleList()) {
 
-class CurlGet : public torrent::Http {
- public:
-  friend class CurlStack;
+  m_timeLastTick = Timer::cache();
 
-  CurlGet(CurlStack* s);
-  virtual ~CurlGet();
-
-  static CurlGet*    new_object(CurlStack* s);
-
-  void               start();
-  void               close();
-
-  bool               is_busy() { return m_handle; }
-
-  double             get_size_done();
-  double             get_size_total();
-
- protected:
-  CURL*              handle() { return m_handle; }
-
-  void               perform(CURLMsg* msg);
-
- private:
-  CurlGet(const CurlGet&);
-  void operator = (const CurlGet&);
-
-  CURL*              m_handle;
-
-  CurlStack*         m_stack;
-};
-
+  m_taskTick.set_iterator(taskScheduler.end());
+  m_taskTick.set_slot(sigc::mem_fun(*this, &ThrottleManager::receive_tick));
 }
 
-#endif
+ThrottleManager::~ThrottleManager() {
+  taskScheduler.erase(&m_taskTick);
+  delete m_throttleList;
+}
+
+void
+ThrottleManager::set_max_rate(uint32_t v) {
+  if (v == m_maxRate)
+    return;
+
+  uint32_t oldRate = m_maxRate;
+  m_maxRate = v;
+
+  if (oldRate == 0) {
+    m_throttleList->enable();
+
+    // We need to start the ticks, and make sure we set m_timeLastTick
+    // to a value that gives an reasonable initial quota.
+    m_timeLastTick = Timer::cache() - 1000000;
+    receive_tick();
+
+  } else if (m_maxRate == 0) {
+    m_throttleList->disable();
+    taskScheduler.erase(&m_taskTick);
+  }
+}
+
+void
+ThrottleManager::receive_tick() {
+  m_throttleList->update_quota(m_maxRate);
+
+  taskScheduler.insert(&m_taskTick, Timer::cache().round_seconds() + 1000000);
+}
+
+}
