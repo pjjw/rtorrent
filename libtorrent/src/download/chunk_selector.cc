@@ -1,4 +1,4 @@
-// rak - Rakshasa's toolbox
+// libTorrent - BitTorrent library
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,36 +34,37 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RAK_ERROR_NUMBER_H
-#define RAK_ERROR_NUMBER_H
+#include "config.h"
 
-#include <cerrno>
-#include <cstring>
+#include "protocol/peer_chunks.h"
 
-namespace rak {
+#include "chunk_selector.h"
 
-class error_number {
-public:
-  error_number() : m_errno(0) {}
-  error_number(int e) : m_errno(e) {}
+namespace torrent {
 
-  bool                is_valid() const             { return m_errno != 0; }
-
-  int                 value() const                { return m_errno; }
-  const char*         c_str() const                { return strerror(m_errno); }
-
-  bool                is_blocked_momentary() const { return m_errno == EAGAIN || m_errno == EINTR; }
-  bool                is_blocked_prolonged() const { return m_errno == EDEADLK; }
-
-  bool                is_closed() const            { return m_errno == ECONNRESET || m_errno == ECONNABORTED; }
-
-  static error_number current()                    { return errno; }
-  static void         clear_global()               { errno = 0; }
-
-private:
-  int                 m_errno;
-};
-
+void
+ChunkSelector::update() {
 }
 
-#endif
+uint32_t
+ChunkSelector::find(PeerChunks* peerChunks, bool highPriority) {
+  return invalid_chunk;
+}
+
+void
+ChunkSelector::enable_index(uint32_t index) {
+}
+
+void
+ChunkSelector::disable_index(uint32_t index) {
+}
+
+void
+ChunkSelector::insert_peer(PeerChunks* peerChunks) {
+}
+
+void
+ChunkSelector::erase_peer(PeerChunks* peerChunks) {
+}
+
+}
