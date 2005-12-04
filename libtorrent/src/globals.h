@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent library
+// libTorrent - BitTorrent library
 // Copyright (C) 2005, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,16 +34,18 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_UTILS_TASK_H
-#define RTORRENT_UTILS_TASK_H
+#ifndef LIBTORRENT_GLOBALS_H
+#define LIBTORRENT_GLOBALS_H
 
-#include "task_scheduler.h"
+#include <rak/timer.h>
 
-namespace utils {
-  
+#include "utils/task_scheduler.h"
+
+namespace torrent {
+
 extern TaskScheduler taskScheduler;
-extern TaskScheduler displayScheduler;
-  
+extern rak::timer    cachedTime;
+
 }
 
 #endif
