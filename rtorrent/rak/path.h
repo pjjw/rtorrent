@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// rak - Rakshasa's toolbox
 // Copyright (C) 2005-2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,37 +34,30 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+// Various functions for manipulating file paths. Also consider making
+// a directory iterator.
 
-#include <fstream>
-#include <stdexcept>
-#include <stdio.h>
-#include <torrent/exceptions.h>
+#ifndef RAK_PATH_H
+#define RAK_PATH_H
 
-#include "option_file.h"
+#include <cstdlib>
+#include <string>
 
-bool
-OptionFile::process_file(const std::string& filename) {
-  std::fstream file(filename.c_str(), std::ios::in);
+namespace rak {
 
-  if (!file.good())
-    return false;
+inline std::string
+path_expand(const std::string& path) {
+  if (path.empty() || path[0] != '~')
+    return path;
 
-  int lineNumber = 0;
-  char buffer[max_size_line];
+  char* home = std::getenv("HOME");
 
-  try {
-
-    while (file.getline(buffer, max_size_line).good()) {
-      lineNumber++;
-      m_slotOption(buffer);
-    }
-
-  } catch (torrent::input_error& e) {
-    snprintf(buffer, max_size_line, "Error in option file: %s:%i: %s", filename.c_str(), lineNumber, e.what());
-
-    throw std::runtime_error(buffer);
-  }
-
-  return true;
+  if (home == NULL)
+    return path;
+  
+  return home + path.substr(1);
 }
+
+}
+
+#endif
