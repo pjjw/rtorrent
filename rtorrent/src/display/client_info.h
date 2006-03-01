@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005-2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,66 +34,50 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#include "config.h"
+#ifndef RTORRENT_DISPLAY_CLIENT_INFO_H
+#define RTORRENT_DISPLAY_CLIENT_INFO_H
 
-#include <rak/functional.h>
+#include <string>
+#include <vector>
 
-#include "torrent/exceptions.h"
+namespace display {
 
-#include "download_manager.h"
-#include "download_wrapper.h"
+class ClientInfo {
+public:
+  // Largest key size + 1.
+  static const uint32_t key_size = 3;
 
-namespace torrent {
+  typedef uint32_t                               size_type;
+  typedef std::pair<char[key_size], const char*> value_type;
+  typedef std::vector<value_type>                container_type;
+  typedef container_type::iterator               iterator;
 
-DownloadManager::iterator
-DownloadManager::insert(DownloadWrapper* d) {
-  if (find(d->info()->hash()) != end())
-    throw input_error("Could not add torrent as it already exists");
+  typedef enum {
+    TYPE_AZUREUS,
+    TYPE_THREE_COMPACT,
+    TYPE_THREE_SPARSE,
+    TYPE_MAXSIZE
+  } Type;
 
-  return Base::insert(end(), d);
-}
+  ClientInfo();
 
-DownloadManager::iterator
-DownloadManager::erase(DownloadWrapper* d) {
-  iterator itr = std::find(begin(), end(), d);
+  void                insert(Type t, const char* key, const char* name);
 
-  if (itr == end())
-    throw client_error("Tried to remove a torrent that doesn't exist");
-    
-  (*itr)->stop();
-  (*itr)->close();
+  char*               print(char* first, char* last, const char* id);
 
-  delete *itr;
-  return Base::erase(itr);
-}
-
-void
-DownloadManager::clear() {
-  while (!empty()) {
-    delete Base::front();
-    Base::pop_front();
+  size_type           sizeof_key(Type t) {
+    switch (t) {
+    case TYPE_AZUREUS:       return 2;
+    case TYPE_THREE_COMPACT: return 1;
+    case TYPE_THREE_SPARSE:  return 1;
+    case TYPE_MAXSIZE:       return 0;
+    }
   }
-}
 
-DownloadManager::iterator
-DownloadManager::find(const std::string& hash) {
-  return std::find_if(begin(), end(), rak::equal(hash, rak::on(std::mem_fun(&DownloadWrapper::info), std::mem_fun(&DownloadInfo::hash))));
-}
-
-DownloadManager::iterator
-DownloadManager::find(DownloadInfo* info) {
-  return std::find_if(begin(), end(), rak::equal(info, std::mem_fun(&DownloadWrapper::info)));
-}
-
-DownloadInfo*
-DownloadManager::find_info(const std::string& hash) {
-  iterator itr = std::find_if(begin(), end(), rak::equal(hash, rak::on(std::mem_fun(&DownloadWrapper::info), std::mem_fun(&DownloadInfo::hash))));
-
-  // TODO: Move these checks somewhere else.
-  if (itr == end() || !(*itr)->main()->is_active())
-    return NULL;
-  else
-    return (*itr)->info();
-}
+private:
+  container_type      m_containers[TYPE_MAXSIZE];
+};
 
 }
+
+#endif
