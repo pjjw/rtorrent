@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005-2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,20 +34,29 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef LIBTORRENT_PRIORITY_H
-#define LIBTORRENT_PRIORITY_H
+#ifndef RTORRENT_CORE_POLL_MANAGER_KQUEUE_H
+#define RTORRENT_CORE_POLL_MANAGER_KQUEUE_H
 
-#include <inttypes.h>
+#include "poll_manager.h"
 
 namespace torrent {
+  class PollKQueue;
+}
 
-enum priority_enum {
-  PRIORITY_OFF = 0,
-  PRIORITY_NORMAL,
-  PRIORITY_HIGH
+namespace core {
+
+class PollManagerKQueue : public PollManager {
+public:
+  static PollManagerKQueue* create(int maxOpenSockets);
+  ~PollManagerKQueue();
+
+  torrent::Poll*      get_torrent_poll();
+
+  void                poll(rak::timer timeout);
+
+private:
+  PollManagerKQueue(torrent::Poll* p) : PollManager(p) {}
 };
-
-typedef priority_enum priority_t;
 
 }
 
