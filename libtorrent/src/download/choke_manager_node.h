@@ -1,4 +1,4 @@
-// rTorrent - BitTorrent client
+// libTorrent - BitTorrent library
 // Copyright (C) 2005-2006, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,48 +34,49 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_OPTION_PARSER_H
-#define RTORRENT_OPTION_PARSER_H
+#ifndef LIBTORRENT_DOWNLOAD_CHOKE_MANAGER_NODE_H
+#define LIBTORRENT_DOWNLOAD_CHOKE_MANAGER_NODE_H
 
-#include <map>
-#include <string>
-#include <sigc++/slot.h>
+#include <rak/timer.h>
 
-// Throws std::runtime_error upon receiving bad input.
+namespace torrent {
 
-class OptionParser {
+class ChokeManager;
+
+class ChokeManagerNode {
 public:
-  typedef sigc::slot0<void>                                         Slot;
-  typedef sigc::slot1<void, const std::string&>                     SlotString;
-  typedef sigc::slot2<void, const std::string&, const std::string&> SlotStringPair;
-  typedef sigc::slot2<void, int, int>                               SlotIntPair;
+  friend class ChokeManager;
 
-  void                insert_flag(char c, Slot s);
-  void                insert_option(char c, SlotString s);
-  void                insert_option_list(char c, SlotStringPair s);
-  void                insert_int_pair(char c, SlotIntPair s);
+  ChokeManagerNode() :
+    m_queued(false),
+    m_unchoked(false),
+    m_snubbed(false) {}
 
-  // Returns the index of the first non-option argument.
-  int                 process(int argc, char** argv);
+  bool                queued() const                          { return m_queued; }
 
-  static bool         has_flag(char flag, int argc, char** argv);
+  bool                choked() const                          { return !m_unchoked; }
+  bool                unchoked() const                        { return m_unchoked; }
+
+  bool                snubbed() const                         { return m_snubbed; }
+  void                set_snubbed(bool s)                     { m_snubbed = s; }
+
+  rak::timer          time_last_choke() const                 { return m_timeLastChoke; }
+  void                set_time_last_choke(rak::timer t)       { m_timeLastChoke = t; }
+
+  // Move.
+  void                set_unchoked(bool s)                    { m_unchoked = s; }
+
+protected:
+  void                set_queued(bool s)                      { m_queued = s; }
 
 private:
-  std::string         create_optstring();
+  bool                m_queued;
+  bool                m_unchoked;
+  bool                m_snubbed;
 
-  void                call(char c, const std::string& arg);
-  static void         call_option_list(SlotStringPair slot, const std::string& arg);
-  static void         call_int_pair(SlotIntPair slot, const std::string& arg);
-
-  // Use pair instead?
-  struct Node {
-    SlotString          m_slot;
-    bool                m_useOption;
-  };
-
-  typedef std::map<char, Node> Container;
-
-  Container           m_container;
+  rak::timer          m_timeLastChoke;
 };
+
+}
 
 #endif
