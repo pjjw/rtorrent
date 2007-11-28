@@ -1,4 +1,4 @@
-// libTorrent - BitTorrent library
+// rTorrent - BitTorrent client
 // Copyright (C) 2005-2007, Jari Sundell
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,54 +34,54 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef LIBTORRENT_PARSE_DOWNLOAD_CONSTRUCTOR_H
-#define LIBTORRENT_PARSE_DOWNLOAD_CONSTRUCTOR_H
+#ifndef RTORRENT_CORE_DHT_MANAGER_H
+#define RTORRENT_CORE_DHT_MANAGER_H
 
-#include <list>
-#include <string>
-#include <inttypes.h>
+#include <rak/priority_queue_default.h>
 
-namespace torrent {
+#include <torrent/object.h>
 
-class Object;
-class Content;
-class DownloadWrapper;
-class TrackerManager;
-class Path;
+namespace core {
 
-typedef std::list<std::string> EncodingList;
-
-class DownloadConstructor {
+class DhtManager {
 public:
-  DownloadConstructor() : m_download(NULL), m_encodingList(NULL) {}
+  DhtManager() : m_warned(false), m_start(dht_off) { }
+  ~DhtManager();
 
-  void                initialize(const Object& b);
+  void                load_dht_cache();
+  void                save_dht_cache();
+  torrent::Object     dht_statistics();
 
-  void                set_download(DownloadWrapper* d)         { m_download = d; }
-  void                set_encoding_list(const EncodingList* e) { m_encodingList = e; }
+  void                start_dht();
+  void                stop_dht();
+  void                auto_start()                 { if (m_start == dht_auto) start_dht(); }
 
-private:  
-  void                parse_name(const Object& b);
-  void                parse_tracker(const Object& b);
-  void                parse_info(const Object& b);
+  void                set_start(const std::string& arg);
 
-  void                add_tracker_group(const Object& b);
-  void                add_tracker_single(const Object& b, int group);
-  void                add_dht_node(const Object& b);
+private:
+  static const int    dht_disable = 0;
+  static const int    dht_off     = 1;
+  static const int    dht_auto    = 2;
+  static const int    dht_on      = 3;
 
-  static bool         is_valid_path_element(const Object& b);
-  static bool         is_invalid_path_element(const Object& b) { return !is_valid_path_element(b); }
+  static const int    dht_settings_num = 4;
+  static const char*  dht_settings[dht_settings_num];
 
-  void                parse_single_file(const Object& b, uint32_t chunkSize);
-  void                parse_multi_files(const Object& b, uint32_t chunkSize);
+  void                update();
+  bool                log_statistics(bool force);
 
-  inline Path         create_path(const Object::list_type& plist, const std::string enc);
-  inline Path         choose_path(std::list<Path>* pathList);
+  unsigned int        m_dhtPrevCycle;
+  unsigned int        m_dhtPrevQueriesSent;
+  unsigned int        m_dhtPrevRepliesReceived;
+  unsigned int        m_dhtPrevQueriesReceived;
+  uint64_t            m_dhtPrevBytesUp;
+  uint64_t            m_dhtPrevBytesDown;
 
-  DownloadWrapper*    m_download;
-  const EncodingList* m_encodingList;
+  rak::priority_item  m_updateTimeout;
+  rak::priority_item  m_stopTimeout;
+  bool                m_warned;
 
-  std::string         m_defaultEncoding;
+  int                 m_start;
 };
 
 }
