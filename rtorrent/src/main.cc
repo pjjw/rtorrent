@@ -44,6 +44,12 @@
 #include <torrent/torrent.h>
 #include <torrent/exceptions.h>
 #include <rak/functional.h>
+#include <locale.h>
+
+#if defined(__sun) && defined(__SVR4)
+#include <stdio.h>
+#include <stdio_ext.h>
+#endif
 
 #ifdef USE_EXECINFO
 #include <execinfo.h>
@@ -164,6 +170,11 @@ main(int argc, char** argv) {
     SignalHandler::set_handler(SIGSEGV,  sigc::bind(sigc::ptr_fun(&do_panic), SIGSEGV));
     SignalHandler::set_handler(SIGBUS,   sigc::bind(sigc::ptr_fun(&do_panic), SIGBUS));
     SignalHandler::set_handler(SIGFPE,   sigc::bind(sigc::ptr_fun(&do_panic), SIGFPE));
+    SignalHandler::set_handler(SIGABRT,   sigc::bind(sigc::ptr_fun(&do_panic), SIGABRT));
+
+#if defined(__sun) && defined(__SVR4)
+    enable_extended_FILE_stdio(-1, SIGABRT);
+#endif
 
     control->core()->initialize_first();
 
