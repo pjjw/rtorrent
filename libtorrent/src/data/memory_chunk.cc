@@ -41,6 +41,16 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/mman.h>
+#if defined(__sun) && defined(__SVR4)
+/* Ugly hack to make this compile on Solaris with g++. See
+ * http://www.opensolaris.org/jive/thread.jspa?threadID=21035&tstart=0
+ */
+#if (_POSIX_C_SOURCE > 2) || defined(_XPG4_2)
+extern "C" {
+extern int madvise(caddr_t, size_t, int);
+}
+#endif
+#endif
 #include <rak/error_number.h>
 
 #include "torrent/exceptions.h"

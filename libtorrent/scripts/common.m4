@@ -170,7 +170,7 @@ AC_DEFUN([TORRENT_CHECK_MADVISE], [
   AC_COMPILE_IFELSE(
     [[#include <sys/types.h>
           #include <sys/mman.h>
-          void f() { static char test[1024]; madvise((void *)test, sizeof(test), MADV_NORMAL); }
+          void f() { static char test[1024]; madvise((char *)test, sizeof(test), MADV_NORMAL); }
     ]],
     [
       AC_MSG_RESULT(yes)
