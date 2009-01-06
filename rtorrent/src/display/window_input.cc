@@ -43,6 +43,11 @@
 
 namespace display {
 
+WindowInput::WindowInput() :
+  Window(new Canvas, 0, 0, 1, extent_full, 1),
+  m_input(NULL),
+  m_focus(false) {}
+
 void
 WindowInput::redraw() {
   m_canvas->erase();

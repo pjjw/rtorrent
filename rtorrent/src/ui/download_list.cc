@@ -234,7 +234,7 @@ DownloadList::receive_view_input(Input type) {
 
   input::PathInput* input = new input::PathInput;
 
-  const char* title;
+  std::string title;
 
   switch (type) {
   case INPUT_LOAD_DEFAULT:

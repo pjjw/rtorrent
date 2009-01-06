@@ -219,7 +219,9 @@ Manager::initialize_second() {
   m_downloadList->slot_map_insert()["1_connect_logs"] = "d.initialize_logs=";
   m_downloadList->slot_map_erase()["9_delete_tied"]   = "d.delete_tied=";
 
-  torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
+  torrent::ConnectionManager::signal_handshake_type& s = torrent::connection_manager()->signal_handshake_log();
+  s.connect(sigc::mem_fun(this, &Manager::handshake_log));
+  //torrent::connection_manager()->set_signal_handshake_log(sigc::mem_fun(this, &Manager::handshake_log));
 }
 
 void
