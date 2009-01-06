@@ -76,9 +76,7 @@ Directory::update(int flags) {
 
     iterator itr = base_type::insert(end(), value_type());
 
-    itr->d_fileno = entry->d_fileno;
     itr->d_reclen = entry->d_reclen;
-    itr->d_type   = entry->d_type;
 
 #ifdef DIRENT_NAMLEN_EXISTS_FOOBAR
     itr->d_name   = std::string(entry->d_name, entry->d_name + entry->d_namlen);

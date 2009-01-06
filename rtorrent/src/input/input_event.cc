@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <ncurses.h>
+#define NCURSES_ERR -1
 
 #include "input_event.h"
 
@@ -58,7 +59,7 @@ void
 InputEvent::event_read() {
   int c;
 
-  while ((c = getch()) != ERR)
+  while ((c = getch()) != NCURSES_ERR)
     m_slotPressed(c);
 }
 

@@ -48,9 +48,7 @@ struct directory_entry {
   bool is_file() const { return true; }
 
   // The name and types should match POSIX.
-  uint32_t            d_fileno;
   uint32_t            d_reclen;
-  uint8_t             d_type;
 
   std::string         d_name;
 };
