@@ -50,6 +50,7 @@
 #include <cstring>
 #include <string>
 #include <stdexcept>
+#include <algorithm>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/types.h>

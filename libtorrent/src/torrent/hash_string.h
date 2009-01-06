@@ -56,8 +56,16 @@ public:
   typedef const value_type*                       const_iterator;
   typedef std::size_t                             size_type;
   typedef std::ptrdiff_t                          difference_type;
+#ifndef __SUNPRO_CC
   typedef std::reverse_iterator<iterator>         reverse_iterator;
   typedef std::reverse_iterator<const_iterator>   const_reverse_iterator;
+#else
+  typedef std::reverse_iterator<iterator, std::random_access_iterator_tag,
+                                int, int&, int*, ptrdiff_t> reverse_iterator;
+
+  typedef std::reverse_iterator<const_iterator, std::random_access_iterator_tag,
+                                int, const int&, const int*, ptrdiff_t> const_reverse_iterator;
+#endif /* SIGC_HAVE_SUN_REVERSE_ITERATOR */
 
   static const size_type size_data = 20;
 

@@ -37,11 +37,10 @@
 #ifndef LIBTORRENT_HASH_COMPUTE_H
 #define LIBTORRENT_HASH_COMPUTE_H
 
-#include <cstring>
-
 #if defined USE_NSS_SHA
 #include "sha_fast.h"
 #elif defined USE_OPENSSL_SHA
+#include <stdlib.h>
 #include <openssl/sha.h>
 #else
 #error "No SHA1 implementation selected, choose between Mozilla's NSS and OpenSSL."

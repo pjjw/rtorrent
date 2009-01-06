@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <locale>
+#include <rak/algorithm.h>
 #include <rak/path.h>
 #include <torrent/exceptions.h>
 

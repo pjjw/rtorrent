@@ -134,7 +134,7 @@ SCgiTask::event_read() {
     if (current == m_buffer || *current != ':' || headerSize < 17 || headerSize > max_header_size)
       goto event_read_failed;
 
-    if (std::distance(++current, m_position) < headerSize + 1)
+    if (m_position - (++current) < headerSize + 1)
       return;
 
     if (std::memcmp(current, "CONTENT_LENGTH", 15) != 0)
@@ -147,7 +147,7 @@ SCgiTask::event_read() {
       goto event_read_failed;
 
     m_body = current + headerSize + 1;
-    headerSize = std::distance(m_buffer, m_body);
+    headerSize = m_body - m_buffer;
 
     if ((unsigned int)(contentSize + headerSize) < m_bufferSize) {
       m_bufferSize = contentSize + headerSize;
@@ -155,26 +155,26 @@ SCgiTask::event_read() {
     } else if ((unsigned int)contentSize <= default_buffer_size) {
       m_bufferSize = contentSize;
 
-      std::memmove(m_buffer, m_body, std::distance(m_body, m_position));
-      m_position = m_buffer + std::distance(m_body, m_position);
+      std::memmove(m_buffer, m_body, m_position - m_body);
+      m_position = m_buffer + (m_position - m_body);
       m_body = m_buffer;
 
     } else {
-      realloc_buffer((m_bufferSize = contentSize) + 1, m_body, std::distance(m_body, m_position));
+      realloc_buffer((m_bufferSize = contentSize) + 1, m_body, m_position - m_body);
 
-      m_position = m_buffer + std::distance(m_body, m_position);
+      m_position = m_buffer + (m_position - m_body);
       m_body = m_buffer;
     }
   }
 
-  if ((unsigned int)std::distance(m_buffer, m_position) != m_bufferSize)
+  if ((unsigned int)(m_position - m_buffer) != m_bufferSize)
     return;
 
   control->poll()->remove_read(this);
   control->poll()->insert_write(this);
 
   // Close if the call failed, else stay open to write back data.
-  if (!m_parent->receive_call(this, m_body, m_bufferSize - std::distance(m_buffer, m_body)))
+  if (!m_parent->receive_call(this, m_body, m_bufferSize - (m_body - m_buffer)))
     close();
 
   return;

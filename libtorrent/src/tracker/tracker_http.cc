@@ -48,6 +48,7 @@
 #include "torrent/http.h"
 #include "torrent/object_stream.h"
 #include "torrent/tracker_list.h"
+#include "torrent/data/file_list.h"
 
 #include "tracker_http.h"
 

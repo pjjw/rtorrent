@@ -53,7 +53,7 @@ WindowStatusbar::redraw() {
   m_canvas->erase();
 
   // TODO: Make a buffer with size = get_width?
-  char buffer[m_canvas->width() + 1];
+  char* buffer = new char[m_canvas->width() + 1];
   char* position;
   char* last = buffer + m_canvas->width();
 
@@ -68,6 +68,8 @@ WindowStatusbar::redraw() {
   }
 
   m_lastTick = control->tick();
+
+  delete buffer;
 }
 
 }

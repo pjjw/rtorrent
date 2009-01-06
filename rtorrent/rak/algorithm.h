@@ -40,6 +40,63 @@
 #include <algorithm>
 #include <functional>
 
+#ifdef _RWSTD_NO_CLASS_PARTIAL_SPEC
+namespace std {
+  template <class Iterator> struct iterator_traits
+  {
+    typedef typename Iterator::value_type value_type;
+    typedef typename Iterator::difference_type difference_type;
+    typedef typename Iterator::pointer pointer;
+    typedef typename Iterator::reference reference;
+    typedef typename Iterator::iterator_category iterator_category;
+  };
+  template <class T> struct iterator_traits<T*>
+  {
+    typedef T value_type;
+    typedef ptrdiff_t difference_type;
+    typedef T* pointer;
+    typedef T& reference;
+    typedef random_access_iterator_tag iterator_category;
+  };
+  template <class T> struct iterator_traits<const T*>
+  {
+    typedef T value_type;
+    typedef ptrdiff_t difference_type;
+    typedef const T* pointer;
+    typedef const T& reference;
+    typedef random_access_iterator_tag iterator_category;
+  };
+
+  template <class ForwardIterator>
+  inline typename iterator_traits<ForwardIterator>::difference_type
+  distance (ForwardIterator first, ForwardIterator last)
+  {
+    typename iterator_traits<ForwardIterator>::difference_type n = 0;
+    __distance(first, last, n, 
+               iterator_traits<ForwardIterator>::iterator_category());
+    return n;
+  }
+
+  template <class InputIterator, class T>
+  inline typename iterator_traits<InputIterator>::difference_type
+  count (InputIterator first, InputIterator last, const T& value)
+  {
+    typename iterator_traits<InputIterator>::difference_type n = 0;
+    count(first, last, value, n);
+    return n;
+  }
+
+  template <class InputIterator, class Predicate>
+  inline typename iterator_traits<InputIterator>::difference_type
+  count_if (InputIterator first, InputIterator last, Predicate pred)
+  {
+    typename iterator_traits<InputIterator>::difference_type n = 0;
+    count_if(first, last, pred, n);
+    return n;
+  }
+}
+#endif
+
 namespace rak {
 
 template <typename _InputIter, typename _Function>

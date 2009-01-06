@@ -39,9 +39,12 @@
 #include <algorithm>
 #include <functional>
 #include <set>
+#include <rak/algorithm.h>
 #include <rak/functional.h>
 
 #include "data/chunk.h"
+#include "download/download_main.h"
+#include "download/chunk_selector.h"
 #include "peer/peer_info.h"
 
 #include "block_failed.h"

@@ -61,7 +61,7 @@ WindowDownloadStatusbar::redraw() {
 
   m_canvas->erase();
 
-  char buffer[m_canvas->width()];
+  char* buffer = new char[m_canvas->width()];
   char* position;
   char* last = buffer + m_canvas->width() - 2;
 
@@ -88,6 +88,8 @@ WindowDownloadStatusbar::redraw() {
                   m_download->tracker_list()->has_active() ? 'C' : ' ',
                   (int)(m_download->download()->tracker_list()->time_next_connection()),
                   buffer);
+
+  delete buffer;
 }
 
 }

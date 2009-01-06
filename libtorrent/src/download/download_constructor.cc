@@ -317,7 +317,7 @@ DownloadConstructor::create_path(const Object::list_type& plist, const std::stri
   Path p;
   p.set_encoding(enc);
 
-  std::transform(plist.begin(), plist.end(), std::back_inserter(p), std::mem_fun_ref<const Object::string_type&>(&Object::as_string));
+  std::transform(((Object::list_type&)plist).begin(), ((Object::list_type&)plist).end(), std::back_inserter(p), std::mem_fun_ref<Object::string_type&>(&Object::as_string));
 
   return p;
 }

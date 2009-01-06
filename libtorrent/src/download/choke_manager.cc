@@ -41,8 +41,10 @@
 #include <numeric>
 #include <cstdlib>
 
+#include "rak/algorithm.h"
 #include "protocol/peer_connection_base.h"
 #include "torrent/peer/connection_list.h"
+#include "resource_manager.h"
 
 #include "choke_manager.h"
 #include "choke_manager_node.h"
@@ -261,7 +263,7 @@ choke_manager_allocate_slots(ChokeManager::iterator first, ChokeManager::iterato
                                         rak::less(i * ChokeManager::order_base + (ChokeManager::order_base - 1),
                                                   rak::mem_ref(&ChokeManager::value_type::second)));
 
-    if (std::distance(target[i].second, target[i + 1].second) != 0)
+    if (target[i].second != target[i + 1].second)
       weightTotal += weights[i];
   }
 

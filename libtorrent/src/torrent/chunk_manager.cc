@@ -112,7 +112,7 @@ ChunkManager::erase(ChunkList* chunkList) {
   if (itr == base_type::end())
     throw internal_error("ChunkManager::erase(...) itr == base_type::end().");
 
-  std::iter_swap(itr, --base_type::end());
+  std::iter_swap(itr, base_type::end()-1);
   base_type::pop_back();
 
   chunkList->set_manager(NULL);

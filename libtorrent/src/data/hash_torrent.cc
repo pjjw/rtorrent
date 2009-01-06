@@ -38,6 +38,7 @@
 
 #include "data/chunk_list.h"
 #include "torrent/exceptions.h"
+#include "download/download_wrapper.h"
 
 #include "hash_torrent.h"
 #include "hash_queue.h"

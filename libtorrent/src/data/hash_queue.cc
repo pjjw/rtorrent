@@ -39,6 +39,7 @@
 #include <functional>
 
 #include "torrent/exceptions.h"
+#include "download/download_wrapper.h"
 
 #include "hash_queue.h"
 #include "hash_chunk.h"

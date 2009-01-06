@@ -36,8 +36,10 @@
 
 #include "config.h"
 
+#include "rak/algorithm.h"
 #include "download/download_info.h"
 #include "download/download_main.h"
+#include "download/download_manager.h"
 #include "net/throttle_list.h"
 #include "torrent/dht_manager.h"
 #include "torrent/exceptions.h"
@@ -324,14 +326,16 @@ Handshake::read_encryption_sync() {
       return false;
   }
 
+  uint32_t len = std::distance(m_readBuffer.position(), itr);
+
   if (m_incoming) {
     // We've found HASH('req1' + S), skip that and go on reading the
     // SKEY hash.
-    m_readBuffer.consume(std::distance(m_readBuffer.position(), itr) + 20);
+    m_readBuffer.consume(len + 20);
     m_state = READ_ENC_SKEY;
 
   } else {
-    m_readBuffer.consume(std::distance(m_readBuffer.position(), itr));
+    m_readBuffer.consume(len);
     m_state = READ_ENC_NEGOT;
   }
 
@@ -935,10 +939,12 @@ Handshake::prepare_key_plus_pad() {
   m_writeBuffer.move_end(96);
 
   int length = random() % enc_pad_size;
-  char pad[length];
+  char* pad = new char[length];
 
   std::generate_n(pad, length, &::random);
   m_writeBuffer.write_len(pad, length);
+
+  delete pad;
 }
 
 void

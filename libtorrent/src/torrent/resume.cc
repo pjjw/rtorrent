@@ -310,8 +310,13 @@ resume_save_addresses(Download download, Object& object) {
 
     const rak::socket_address* sa = rak::socket_address::cast_from(itr->second->socket_address());
 
-    if (sa->family() == rak::socket_address::af_inet)
-      peer.insert_key("inet", std::string(SocketAddressCompact(sa->sa_inet()->address_n(), htons(itr->second->listen_port())).c_str(), sizeof(SocketAddressCompact)));
+    if (sa->family() == rak::socket_address::af_inet) {
+      SocketAddressCompact s = {
+        sa->sa_inet()->address_n(),
+        htons(itr->second->listen_port())
+      };
+      peer.insert_key("inet", std::string(s.c_str(), sizeof(SocketAddressCompact)));
+    }
 
     peer.insert_key("failed",  itr->second->failed_counter());
     peer.insert_key("last",    itr->second->is_connected() ? cachedTime.seconds() : itr->second->last_connection());

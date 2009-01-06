@@ -697,7 +697,9 @@ PeerConnection<type>::read_have_chunk(uint32_t index) {
   }
 }
 
+#ifndef __SUNPRO_CC
 template<>
+#endif
 void
 PeerConnection<Download::CONNECTION_INITIAL_SEED>::offer_chunk() {
   // If bytes left to send in this chunk minus bytes about to be sent is zero,
@@ -718,7 +720,9 @@ PeerConnection<Download::CONNECTION_INITIAL_SEED>::offer_chunk() {
   m_data.bytesLeft = m_download->file_list()->chunk_index_size(index);
 }
 
+#ifndef __SUNPRO_CC
 template<>
+#endif
 bool
 PeerConnection<Download::CONNECTION_INITIAL_SEED>::should_upload() {
   // For initial seeding, check if chunk is well seeded now, and if so

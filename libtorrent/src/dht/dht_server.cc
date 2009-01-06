@@ -582,7 +582,7 @@ DhtServer::add_transaction(DhtTransaction* transaction, int priority) {
   }
 
   // We know where to insert it, so pass that as hint.
-  insertItr = m_transactions.insert(insertItr, std::make_pair(transaction->key(id), transaction));
+  insertItr = m_transactions.insert(insertItr, transaction_map::value_type(transaction->key(id), transaction));
 
   create_query(insertItr, id, transaction->address(), priority);
 

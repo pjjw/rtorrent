@@ -39,6 +39,7 @@
 #include <iterator>
 #include <iostream>
 #include <rak/functional.h>
+#include <rak/algorithm.h>
 
 #include "utils/sha1.h"
 
@@ -233,7 +234,7 @@ object_write_bencode_c_value(object_write_data_t* output, int64_t src) {
     src /= 10;
   }
 
-  object_write_bencode_c_string(output, first, 20 - std::distance(buffer, first));
+  object_write_bencode_c_string(output, first, 20 - (first - buffer));
 }
 
 void

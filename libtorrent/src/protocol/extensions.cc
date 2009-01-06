@@ -119,7 +119,7 @@ ProtocolExtension::generate_handshake_message() {
   message.insert_key("reqq", 2048);  // maximum request queue size
 
   char buffer[1024];
-  object_buffer_t result = object_write_bencode_c(object_write_to_buffer, NULL, std::make_pair(buffer, buffer + sizeof(buffer)), &message);
+  object_buffer_t result = object_write_bencode_c(object_write_to_buffer, NULL, std::make_pair((char*)buffer, buffer + sizeof(buffer)), &message);
 
   int length = result.second - buffer;
   char* copy = new char[length];

@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <rak/algorithm.h>
 #include <rak/functional.h>
 #include <rak/functional_fun.h>
 #include <rpc/parse_commands.h>

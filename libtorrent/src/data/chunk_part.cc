@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <unistd.h>
 
+#include "rak/algorithm.h"
 #include "torrent/exceptions.h"
 #include "chunk_part.h"
 
@@ -70,11 +71,13 @@ ChunkPart::incore_length(uint32_t pos) {
 
   int length = size() - pos;
   int touched = m_chunk.pages_touched(pos, length);
-  char buf[touched];
+  char* buf = new char[touched];
 
   m_chunk.incore(buf, pos, length);
 
   int dist = std::distance(buf, std::find(buf, buf + touched, 0));
+
+  delete buf;
 
   return std::min(dist ? (dist * m_chunk.page_size() - m_chunk.page_align()) : 0,
                   size() - pos);

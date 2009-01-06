@@ -38,6 +38,8 @@
 
 #include "torrent/exceptions.h"
 #include "torrent/chunk_manager.h"
+#include "torrent/data/file_utils.h"
+#include "download/download_wrapper.h"
 
 #include "chunk_list.h"
 #include "chunk.h"
@@ -299,27 +301,18 @@ ChunkList::sync_chunks(int flags) {
 
 std::pair<int, bool>
 ChunkList::sync_options(ChunkListNode* node, int flags) {
-  // Using if statements since some linkers have problem with static
-  // const int members inside the ?: operators. The compiler should
-  // be optimizing this anyway.
+  int sync = MemoryChunk::sync_async;
+  bool end = true;
 
-  if (flags & sync_force) {
+  if (flags & sync_safe) {
 
-    if (flags & sync_safe)
-      return std::make_pair(MemoryChunk::sync_sync, true);
+    if (flags & sync_force || node->sync_triggered())
+      sync = MemoryChunk::sync_sync;
     else
-      return std::make_pair(MemoryChunk::sync_async, true);
-
-  } else if (flags & sync_safe) {
-      
-    if (node->sync_triggered())
-      return std::make_pair(MemoryChunk::sync_sync, true);
-    else
-      return std::make_pair(MemoryChunk::sync_async, false);
-
-  } else {
-    return std::make_pair(MemoryChunk::sync_async, true);
+      end = false;
   }
+
+  return std::make_pair(sync, end);
 }
 
 // Using a rather simple algorithm for now. This should really be more
@@ -358,16 +351,18 @@ ChunkList::partition_optimize(Queue::iterator first, Queue::iterator last, int w
     bool required = std::find_if(itr, range, std::bind1st(std::mem_fun(&ChunkList::check_node), this)) != range;
     dontSkip = dontSkip || required;
 
-    if (!required && std::distance(itr, range) < maxDistance) {
+    unsigned int l = range - itr;
+
+    if (!required && l < maxDistance) {
       // Don't sync this range.
-      unsigned int l = std::min(range - itr, itr - first);
+      l = std::min(l, (unsigned int)(itr - first));
       std::swap_ranges(first, first + l, range - l);
 
       first += l;
 
     } else {
       // This probably increases too fast.
-      weight -= std::distance(itr, range) * std::distance(itr, range);
+      weight -= l * l;
     }
 
     itr = range;

@@ -40,6 +40,8 @@
 #include <limits>
 #include <torrent/exceptions.h>
 
+#include "socket_base.h"
+
 #include "throttle_list.h"
 #include "throttle_node.h"
 

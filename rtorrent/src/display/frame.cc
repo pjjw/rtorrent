@@ -41,6 +41,8 @@
 #include <rak/algorithm.h>
 #include <torrent/exceptions.h>
 
+#include "manager.h"
+
 #include "frame.h"
 #include "window.h"
 
@@ -63,8 +65,8 @@ Frame::is_width_dynamic() const {
 
   case TYPE_ROW:
   case TYPE_COLUMN:
-    for (size_type i = 0; i < m_containerSize; ++i)
-      if (m_container[i]->is_width_dynamic())
+    for (size_type i = 0; i < m_container.size; ++i)
+      if (m_container.frames[i]->is_width_dynamic())
         return true;
 
     return false;
@@ -81,8 +83,8 @@ Frame::is_height_dynamic() const {
 
   case TYPE_ROW:
   case TYPE_COLUMN:
-    for (size_type i = 0; i < m_containerSize; ++i)
-      if (m_container[i]->is_height_dynamic())
+    for (size_type i = 0; i < m_container.size; ++i)
+      if (m_container.frames[i]->is_height_dynamic())
         return true;
 
     return false;
@@ -99,8 +101,8 @@ Frame::has_left_frame() const {
   case TYPE_WINDOW: return m_window->is_active() && m_window->is_left();
 
   case TYPE_COLUMN:
-    for (size_type i = 0; i < m_containerSize; ++i)
-      if (m_container[i]->has_left_frame())
+    for (size_type i = 0; i < m_container.size; ++i)
+      if (m_container.frames[i]->has_left_frame())
         return true;
 
     return false;
@@ -117,8 +119,8 @@ Frame::has_bottom_frame() const {
   case TYPE_WINDOW: return m_window->is_active() && m_window->is_bottom();
 
   case TYPE_ROW:
-    for (size_type i = 0; i < m_containerSize; ++i)
-      if (m_container[i]->has_bottom_frame())
+    for (size_type i = 0; i < m_container.size; ++i)
+      if (m_container.frames[i]->has_bottom_frame())
         return true;
 
     return false;
@@ -145,8 +147,8 @@ Frame::preferred_size() const {
     {
       bounds_type accum(0, 0, 0, 0);
 
-      for (size_type i = 0; i < m_containerSize; ++i) {
-        bounds_type p = m_container[i]->preferred_size();
+      for (size_type i = 0; i < m_container.size; ++i) {
+        bounds_type p = m_container.frames[i]->preferred_size();
  
         accum.minWidth += p.minWidth;
         accum.minHeight += p.minHeight;
@@ -174,13 +176,13 @@ Frame::set_container_size(size_type size) {
   if ((m_type != TYPE_ROW && m_type != TYPE_COLUMN) || size >= max_size)
     throw torrent::internal_error("Frame::set_container_size(...) Bad state.");
 
-  while (m_containerSize > size) {
-    delete m_container[--m_containerSize];
-    m_container[m_containerSize] = NULL;
+  while (m_container.size > size) {
+    delete m_container.frames[--m_container.size];
+    m_container.frames[m_container.size] = NULL;
   }
 
-  while (m_containerSize < size) {
-    m_container[m_containerSize++] = new Frame();
+  while (m_container.size < size) {
+    m_container.frames[m_container.size++] = new Frame();
   }
 }
 
@@ -202,10 +204,10 @@ Frame::initialize_row(size_type size) {
     throw torrent::internal_error("Frame::initialize_container(...) size >= max_size.");
 
   m_type = TYPE_ROW;
-  m_containerSize = size;
+  m_container.size = size;
 
-  for (size_type i = 0; i < m_containerSize; ++i)
-    m_container[i] = new Frame();
+  for (size_type i = 0; i < m_container.size; ++i)
+    m_container.frames[i] = new Frame();
 }
 
 void
@@ -217,10 +219,10 @@ Frame::initialize_column(size_type size) {
     throw torrent::internal_error("Frame::initialize_container(...) size >= max_size.");
 
   m_type = TYPE_COLUMN;
-  m_containerSize = size;
+  m_container.size = size;
 
-  for (size_type i = 0; i < m_containerSize; ++i)
-    m_container[i] = new Frame();
+  for (size_type i = 0; i < m_container.size; ++i)
+    m_container.frames[i] = new Frame();
 }
 
 void
@@ -234,9 +236,9 @@ Frame::clear() {
     
   case TYPE_ROW:
   case TYPE_COLUMN:
-    for (size_type i = 0; i < m_containerSize; ++i) {
-      m_container[i]->clear();
-      delete m_container[i];
+    for (size_type i = 0; i < m_container.size; ++i) {
+      m_container.frames[i]->clear();
+      delete m_container.frames[i];
     }
     break;
 
@@ -261,7 +263,7 @@ Frame::refresh() {
 
   case TYPE_ROW:
   case TYPE_COLUMN:
-    for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr)
+    for (Frame **itr = m_container.frames, **last = m_container.frames + m_container.size; itr != last; ++itr)
       (*itr)->refresh();
 
     break;
@@ -282,7 +284,7 @@ Frame::redraw() {
 
   case TYPE_ROW:
   case TYPE_COLUMN:
-    for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr)
+    for (Frame **itr = m_container.frames, **last = m_container.frames + m_container.size; itr != last; ++itr)
       (*itr)->redraw();
 
     break;
@@ -343,7 +345,7 @@ Frame::balance_row(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 
   int remaining = height;
   
-  for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr) {
+  for (Frame **itr = m_container.frames, **last = m_container.frames + m_container.size; itr != last; ++itr) {
     bounds_type bounds = (*itr)->preferred_size();
     
     if ((*itr)->is_height_dynamic()) {
@@ -391,7 +393,7 @@ Frame::balance_row(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
   // the frame is too small, it will set the remaining windows to zero
   // extent which will flag them as offscreen.
 
-  for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr) {
+  for (Frame **itr = m_container.frames, **last = m_container.frames + m_container.size; itr != last; ++itr) {
     // If there is any remaining space, check if we want to shift
     // the subsequent frames to the other side of this frame.
     if (remaining > 0 && (*itr)->has_bottom_frame()) {
@@ -417,7 +419,7 @@ Frame::balance_column(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 
   int remaining = width;
   
-  for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr) {
+  for (Frame **itr = m_container.frames, **last = m_container.frames + m_container.size; itr != last; ++itr) {
     bounds_type bounds = (*itr)->preferred_size();
     
     if ((*itr)->is_width_dynamic()) {
@@ -465,7 +467,7 @@ Frame::balance_column(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
   // the frame is too small, it will set the remaining windows to zero
   // extent which will flag them as offscreen.
 
-  for (Frame **itr = m_container, **last = m_container + m_containerSize; itr != last; ++itr) {
+  for (Frame **itr = m_container.frames, **last = m_container.frames + m_container.size; itr != last; ++itr) {
     // If there is any remaining space, check if we want to shift
     // the subsequent frames to the other side of this frame.
     if (remaining > 0 && (*itr)->has_left_frame()) {

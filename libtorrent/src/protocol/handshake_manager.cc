@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <rak/socket_address.h>
+#include <rak/algorithm.h>
 
 #include "torrent/exceptions.h"
 #include "torrent/error.h"

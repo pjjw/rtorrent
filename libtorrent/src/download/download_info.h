@@ -186,10 +186,13 @@ private:
 };
 
 // Move somewhere else.
+#if defined(__APPLE__) || defined(__SUNPRO_CC)
+#pragma pack(1)
+#endif
 struct SocketAddressCompact {
-  SocketAddressCompact() {}
-  SocketAddressCompact(uint32_t a, uint16_t p) : addr(a), port(p) {}
-  SocketAddressCompact(const rak::socket_address_inet* sa) : addr(sa->address_n()), port(sa->port_n()) {}
+  //SocketAddressCompact() {}
+  //SocketAddressCompact(uint32_t a, uint16_t p) : addr(a), port(p) {}
+  //SocketAddressCompact(const rak::socket_address_inet* sa) : addr(sa->address_n()), port(sa->port_n()) {}
 
   operator rak::socket_address () const {
     rak::socket_address sa;
@@ -205,6 +208,9 @@ struct SocketAddressCompact {
 
   const char*         c_str() const { return reinterpret_cast<const char*>(this); }
 } __attribute__ ((packed));
+#if defined(__APPLE__) || defined(__SUNPRO_CC)
+#pragma pack()
+#endif
 
 }
 

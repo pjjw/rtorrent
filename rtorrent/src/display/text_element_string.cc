@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <rak/algorithm.h>
 #include <rak/string_manip.h>
 
 #include "rpc/parse_commands.h"
@@ -52,16 +53,20 @@ TextElementStringBase::print(char* first, char* last, Canvas::attributes_list* a
     return first;
 
   if (m_flags & flag_escape_hex) {
-    char buffer[last - first];
+    char* buffer = new char[last - first];
     char* bufferLast = copy_string(buffer, buffer + (last - first), target);
 
     first = rak::transform_hex(buffer, bufferLast, first, last);
 
+    delete buffer;
+
   } else if (m_flags & flag_escape_html) {
-    char buffer[last - first];
+    char* buffer = new char[last - first];
     char* bufferLast = copy_string(buffer, buffer + (last - first), target);
 
     first = rak::copy_escape_html(buffer, bufferLast, first, last);
+
+    delete buffer;
 
   } else {
     first = copy_string(first, last, target);

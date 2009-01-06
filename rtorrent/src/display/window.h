@@ -41,6 +41,7 @@
 #include <rak/functional.h>
 
 #include "canvas.h"
+#include "manager.h"
 #include "globals.h"
 
 namespace display {

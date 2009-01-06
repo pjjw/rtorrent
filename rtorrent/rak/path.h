@@ -42,6 +42,7 @@
 
 #include <cstdlib>
 #include <string>
+#include <algorithm>
 
 namespace rak {
 
@@ -91,7 +92,7 @@ path_expand(const char* src, char* first, char* last) {
     if (home == NULL)
       return first;
 
-    first += strlcpy(first, home, std::distance(first, last));
+    first += strlcpy(first, home, last-first);
 
     if (first > last)
       return last;
@@ -99,7 +100,7 @@ path_expand(const char* src, char* first, char* last) {
     src++;
   }
 
-  return std::min(first + strlcpy(first, src, std::distance(first, last)), last);
+  return std::min(first + strlcpy(first, src, last-first), last);
 }
 
 }

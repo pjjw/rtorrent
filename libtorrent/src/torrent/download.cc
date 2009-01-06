@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include <rak/algorithm.h>
 #include <rak/functional.h>
 #include <sigc++/adaptors/bind.h>
 #include <sigc++/adaptors/hide.h>

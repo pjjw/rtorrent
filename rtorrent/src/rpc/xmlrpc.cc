@@ -477,7 +477,8 @@ XmlRpc::insert_command(const char* name, const char* parm, const char* doc) {
   xmlrpc_env_init(&localEnv);
 
   xmlrpc_registry_add_method_w_doc(&localEnv, (xmlrpc_registry*)m_registry, NULL, name,
-                                   &xmlrpc_call_command, const_cast<char*>(name), parm, doc);
+                                   (const xmlrpc_method)(&xmlrpc_call_command),
+				   const_cast<char*>(name), parm, doc);
 
   if (localEnv.fault_occurred)
     throw torrent::internal_error("Fault occured while inserting xmlrpc call.");

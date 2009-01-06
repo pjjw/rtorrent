@@ -93,8 +93,9 @@ WindowText::redraw() {
   if (m_canvas->height() == 0)
     return;
 
+  char* buffer = new char[m_canvas->width() + 1];
+
   if (m_errorHandler != NULL && m_target.second == NULL) {
-    char buffer[m_canvas->width() + 1];
 
     Canvas::attributes_list attributes;
     attributes.push_back(Attributes(buffer, Attributes::a_normal, Attributes::color_default));
@@ -102,14 +103,15 @@ WindowText::redraw() {
     char* last = m_errorHandler->print(buffer, buffer + m_canvas->width(), &attributes, m_target);
 
     m_canvas->print_attributes(0, position, buffer, last, &attributes);
+
+    delete buffer;
+
     return;
   }
 
   for (iterator itr = begin(); itr != end() && position < m_canvas->height(); ++itr, ++position) {
     if (*itr == NULL)
       continue;
-
-    char buffer[m_canvas->width() + 1];
 
     Canvas::attributes_list attributes;
     attributes.push_back(Attributes(buffer, Attributes::a_normal, Attributes::color_default));
@@ -118,6 +120,8 @@ WindowText::redraw() {
 
     m_canvas->print_attributes(0, position, buffer, last, &attributes);
   }
+
+  delete buffer;
 }
 
 }

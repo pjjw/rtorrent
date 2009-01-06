@@ -45,6 +45,7 @@
 #include "torrent/exceptions.h"
 #include "torrent/connection_manager.h"
 #include "torrent/poll.h"
+#include "protocol/handshake_manager.h"
 
 #include "listen.h"
 #include "manager.h"

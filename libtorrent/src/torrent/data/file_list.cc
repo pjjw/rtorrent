@@ -42,6 +42,7 @@
 #include <limits>
 #include <memory>
 #include <set>
+#include <rak/algorithm.h>
 #include <rak/error_number.h>
 #include <rak/file_stat.h>
 #include <rak/fs_stat.h>

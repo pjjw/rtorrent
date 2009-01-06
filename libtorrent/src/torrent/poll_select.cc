@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <functional>
 
 #include <unistd.h>
 #include <sys/time.h>

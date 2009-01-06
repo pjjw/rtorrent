@@ -90,9 +90,9 @@ WindowDownloadList::redraw() {
     ++range.second;
 
   int pos = 1;
+  char* buffer = new char[m_canvas->width() + 1];
 
   while (range.first != range.second) {
-    char buffer[m_canvas->width() + 1];
     char* position;
     char* last = buffer + m_canvas->width() - 2 + 1;
 
@@ -107,6 +107,8 @@ WindowDownloadList::redraw() {
 
     ++range.first;
   }    
+
+  delete buffer;
 }
 
 }

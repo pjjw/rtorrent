@@ -84,7 +84,7 @@ WindowFileList::redraw() {
   if (fl->size_files() == 0 || m_canvas->height() < 2)
     return;
 
-  iterator entries[m_canvas->height() - 1];
+  iterator* entries = new iterator[m_canvas->height() - 1];
 
   unsigned int last = 0;
 
@@ -134,7 +134,7 @@ WindowFileList::redraw() {
       m_canvas->print(16 + itr.depth() - 1, pos, "/");
 
     } else if (itr.is_file()) {
-      char buffer[std::max<unsigned int>(m_canvas->width() + 1, 256)];
+      char* buffer = new char[std::max<unsigned int>(m_canvas->width() + 1, 256)];
       Canvas::attributes_list attributes;
 
       torrent::File* e = *itr;
@@ -169,6 +169,8 @@ WindowFileList::redraw() {
 
       m_canvas->print_attributes(0, pos, buffer, buffer + std::strlen(buffer), &attributes);
 
+      delete buffer;
+
     } else {
       m_canvas->print(0, pos, "BORK BORK");
     }
@@ -179,6 +181,8 @@ WindowFileList::redraw() {
     pos++;
     first = (first + 1) % (m_canvas->height() - 1);
   }
+
+  delete entries;
 }
 
 int

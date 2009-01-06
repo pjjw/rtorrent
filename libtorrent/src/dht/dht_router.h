@@ -137,7 +137,7 @@ private:
   // Maximum number of potential contacts to keep until bootstrap complete.
   static const unsigned int num_bootstrap_contacts = 64;
 
-  typedef std::map<const HashString, DhtBucket*> DhtBucketList;
+  typedef std::map<HashString, DhtBucket*> DhtBucketList;
 
   DhtBucketList::iterator find_bucket(const HashString& id);
 

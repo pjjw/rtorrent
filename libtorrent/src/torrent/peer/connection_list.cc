@@ -141,7 +141,7 @@ ConnectionList::erase_remaining(iterator pos, int flags) {
   // Need to do it one connection at the time to ensure that when the
   // signal is emited everything is in a valid state.
   while (pos != end())
-    erase(--end(), flags);
+    erase(end()-1, flags);
 
   m_download->info()->set_accepting_new_peers(size() < m_maxSize);
 }

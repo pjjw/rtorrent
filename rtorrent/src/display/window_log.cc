@@ -37,6 +37,7 @@
 #include "config.h"
 
 #include <ctime>
+#include <rak/algorithm.h>
 
 #include "canvas.h"
 #include "utils.h"

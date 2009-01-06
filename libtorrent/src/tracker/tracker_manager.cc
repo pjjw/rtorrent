@@ -36,7 +36,9 @@
 
 #include "config.h"
 
+#include "rak/algorithm.h"
 #include "download/download_info.h"
+#include "download/download_wrapper.h"
 #include "torrent/exceptions.h"
 #include "torrent/tracker.h"
 #include "torrent/tracker_list.h"

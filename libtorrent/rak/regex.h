@@ -74,7 +74,7 @@ regex::operator () (const std::string& text) const {
   std::list<unsigned int> paths;
   paths.push_front(0);
 
-  for (std::string::const_iterator itrText = ++text.begin(), lastText = text.end(); itrText != lastText; ++itrText) {
+  for (std::string::const_iterator itrText = text.begin()+1, lastText = text.end(); itrText != lastText; ++itrText) {
     
     for (std::list<unsigned int>::iterator itrPaths = paths.begin(), lastPaths = paths.end(); itrPaths != lastPaths; ) {
 

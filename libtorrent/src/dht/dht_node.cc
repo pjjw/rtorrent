@@ -77,7 +77,10 @@ char*
 DhtNode::store_compact(char* buffer) const {
   HashString::cast_from(buffer)->assign(data());
 
-  SocketAddressCompact sa(address()->sa_inet());
+  SocketAddressCompact sa = {
+    m_socketAddress.sa_inet()->address_n(),
+    m_socketAddress.sa_inet()->port_n()
+  };
   std::memcpy(buffer + 20, sa.c_str(), 6);
 
   return buffer + 26;

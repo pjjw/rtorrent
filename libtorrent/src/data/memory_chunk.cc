@@ -162,11 +162,15 @@ MemoryChunk::sync(uint32_t offset, uint32_t length, int flags) {
 bool
 MemoryChunk::is_incore(uint32_t offset, uint32_t length) {
   uint32_t size = pages_touched(offset, length);
-  char buf[size];
+  char* buf = new char[size];
   
   incore(buf, offset, length);
 
-  return std::find(buf, buf + size, 0) == buf + size;
+  bool ret = (std::find(buf, buf + size, 0) == buf + size);
+
+  delete buf;
+
+  return ret;
 }
 
 }

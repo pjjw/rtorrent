@@ -36,6 +36,7 @@
 
 #include "config.h"
 
+#include "rak/algorithm.h"
 #include "torrent/exceptions.h"
 
 #include "dht_bucket.h"

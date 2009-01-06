@@ -45,6 +45,7 @@
 #include "torrent/connection_manager.h"
 #include "torrent/poll.h"
 #include "torrent/tracker_list.h"
+#include "torrent/data/file_list.h"
 
 #include "tracker_udp.h"
 #include "manager.h"
@@ -325,7 +326,7 @@ TrackerUdp::process_error_output() {
       m_readBuffer->read_32() != m_transactionId)
     return false;
 
-  receive_failed("Received error message: " + std::string(m_readBuffer->position(), m_readBuffer->end()));
+  receive_failed("Received error message: " + std::string((char*)m_readBuffer->position(), m_readBuffer->remaining()));
   return true;
 }
 

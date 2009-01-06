@@ -68,7 +68,7 @@ DhtSearch::~DhtSearch() {
   if (m_concurrency != 3)
     throw internal_error("DhtSearch::~DhtSearch with invalid concurrency limit.");
 
-  for (accessor itr = begin(); itr != end(); ++itr)
+  for (accessor itr = begin(); static_cast<const_accessor>(itr) != end(); ++itr)
     delete itr.node();
 }
 
@@ -141,7 +141,7 @@ DhtSearch::trim(bool final) {
   // We're done if we can't find any more nodes to contact.
   m_next = end();
 
-  for (accessor itr = base_type::begin(); itr != end(); ) {
+  for (accessor itr = base_type::begin(); static_cast<const_accessor>(itr) != end(); ) {
     // If we have all we need, delete current node unless it is
     // currently being contacted.
     if (!itr.node()->is_active() && needClosest <= 0 && (!itr.node()->is_good() || needGood <= 0)) {
@@ -264,7 +264,7 @@ DhtAnnounce::update_status() {
 void
 DhtTransactionPacket::build_buffer(const Object& data) {
   char buffer[1500];  // If the message would exceed an Ethernet frame, something went very wrong.
-  object_buffer_t result = object_write_bencode_c(object_write_to_buffer, NULL, std::make_pair(buffer, buffer + sizeof(buffer)), &data);
+  object_buffer_t result = object_write_bencode_c(object_write_to_buffer, NULL, std::make_pair((char*)buffer, buffer + sizeof(buffer)), &data);
 
   m_length = result.second - buffer;
   m_data = new char[m_length];

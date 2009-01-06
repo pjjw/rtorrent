@@ -46,7 +46,9 @@
 #include "torrent/data/block.h"
 #include "torrent/data/block_list.h"
 #include "torrent/data/block_transfer.h"
+#include "torrent/data/file_list.h"
 #include "protocol/peer_chunks.h"
+#include "download/chunk_selector.h"
 
 #include "delegator.h"
 

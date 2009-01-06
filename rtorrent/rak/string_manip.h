@@ -62,7 +62,7 @@ Sequence trim_begin(const Sequence& seq) {
 
 template <typename Sequence>
 Sequence trim_end(const Sequence& seq) {
-  if (seq.empty() || !std::isspace(*(--seq.end())))
+  if (seq.empty() || !std::isspace(*(seq.end()-1)))
     return seq;
 
   typename Sequence::size_type pos = seq.size();
@@ -93,7 +93,7 @@ Sequence trim_begin_classic(const Sequence& seq) {
 
 template <typename Sequence>
 Sequence trim_end_classic(const Sequence& seq) {
-  if (seq.empty() || !std::isspace(*(--seq.end()), std::locale::classic()))
+  if (seq.empty() || !std::isspace(*(seq.end()-1), std::locale::classic()))
     return seq;
 
   typename Sequence::size_type pos = seq.size();

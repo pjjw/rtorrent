@@ -92,9 +92,9 @@ public:
 
   Window*             window() const                    { return m_window; }
 
-  Frame*              frame(size_type idx)              { return m_container[idx]; }
+  Frame*              frame(size_type idx)              { return m_container.frames[idx]; }
 
-  size_type           container_size() const            { return m_containerSize; }
+  size_type           container_size() const            { return m_container.size; }
   void                set_container_size(size_type size);
 
   void                initialize_window(Window* window);
@@ -120,13 +120,14 @@ private:
   uint32_t            m_width;
   uint32_t            m_height;
 
+  typedef struct {
+    size_type           size;
+    Frame*              frames[max_size];
+  } container_t;
+
   union {
     Window*             m_window;
-    
-    struct {
-      size_type           m_containerSize;
-      Frame*              m_container[max_size];
-    };
+    container_t         m_container;
   };
 };
 

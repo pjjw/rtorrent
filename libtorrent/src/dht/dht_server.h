@@ -108,6 +108,9 @@ private:
 
   typedef std::deque<DhtTransactionPacket*> packet_queue;
 
+#if defined(__APPLE__) || defined(__SUNPRO_CC)
+#pragma pack(1)
+#endif
   struct compact_node_info {
     char                 _id[20];
     SocketAddressCompact _addr;
@@ -115,6 +118,9 @@ private:
     HashString&          id()          { return *HashString::cast_from(_id); }
     rak::socket_address  address()     { return rak::socket_address(_addr); }
   } __attribute__ ((packed));
+#if defined(__APPLE__) || defined(__SUNPRO_CC)
+#pragma pack()
+#endif
   typedef std::list<compact_node_info> node_info_list;
 
   // Pending transactions.
