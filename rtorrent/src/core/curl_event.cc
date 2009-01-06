@@ -1,5 +1,5 @@
-// rTorrent - BitTorrent client
-// Copyright (C) 2005-2007, Jari Sundell
+// libTorrent - BitTorrent library
+// Copyright (C) 2008 Albert Lee
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,50 +34,30 @@
 //           Skomakerveien 33
 //           3185 Skoppum, NORWAY
 
-#ifndef RTORRENT_CORE_POLL_MANAGER_H
-#define RTORRENT_CORE_POLL_MANAGER_H
+#include "config.h"
 
-#include <sys/select.h>
-#include <rak/timer.h>
-#include <sigc++/signal.h>
-#include <torrent/poll.h>
+#include <torrent/exceptions.h>
 
+#include "rak/functional.h"
+
+#include "curl_event.h"
 #include "curl_stack.h"
 
 namespace core {
 
-// CurlStack really should be somewhere else, but that won't happen
-// until they add an epoll friendly API.
-
-class PollManager {
-public:
-  typedef sigc::signal0<void> Signal;
-
-  PollManager(torrent::Poll* poll);
-  virtual ~PollManager();
-
-  unsigned int        get_open_max() const         { return m_poll->open_max(); }
-
-  CurlStack*          get_http_stack()             { return m_httpStack; }
-  torrent::Poll*      get_torrent_poll()           { return m_poll; }
-
-  virtual void        poll(rak::timer timeout) = 0;
-
-protected:
-  PollManager(const PollManager&);
-  void operator = (const PollManager&);
-
-  void                check_error();
-
-  torrent::Poll*      m_poll;
-  CurlStack*          m_httpStack;
-
-  unsigned int        m_setSize;
-  fd_set*             m_readSet;
-  fd_set*             m_writeSet;
-  fd_set*             m_errorSet;
-};
-
+void
+CurlEvent::event_read() {
+  m_stack->perform(m_fileDesc);
 }
 
-#endif
+void
+CurlEvent::event_write() {
+  m_stack->perform(m_fileDesc);
+}
+
+void
+CurlEvent::event_error() {
+  m_stack->perform(m_fileDesc);
+}
+
+}

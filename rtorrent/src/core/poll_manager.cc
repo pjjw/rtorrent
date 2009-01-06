@@ -44,7 +44,8 @@
 namespace core {
 
 PollManager::PollManager(torrent::Poll* poll) :
-  m_poll(poll) {
+  m_poll(poll),
+  m_httpStack(new CurlStack(poll)) {
 
   if (m_poll == NULL)
     throw std::logic_error("PollManager::PollManager(...) received poll == NULL");
@@ -74,10 +75,11 @@ PollManager::PollManager(torrent::Poll* poll) :
 
   // Call this so curl has valid fd_set pointers if curl_multi_perform
   // is called before it gets set when polling.
-  m_httpStack.fdset(m_readSet, m_writeSet, m_errorSet);
+  m_httpStack->fdset(m_readSet, m_writeSet, m_errorSet);
 }
 
 PollManager::~PollManager() {
+  delete m_httpStack;
   delete m_poll;
 
 #if defined USE_VARIABLE_FDSET

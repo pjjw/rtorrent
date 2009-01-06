@@ -40,10 +40,18 @@
 #include <deque>
 #include <string>
 #include <sigc++/functors/slot.h>
+#include <curl/curl.h>
+
+class torrent::Poll;
 
 namespace core {
 
 class CurlGet;
+
+#if LIBCURL_VERSION_NUM >= 0x071000
+static void timer_callback(curl_socket_t socket, int action, void* event_data);
+#endif
+static int socket_callback(CURL *easy, curl_socket_t socket, int action, void* socket_data, void* assign_data);
 
 // By using a deque instead of vector we allow for cheaper removal of
 // the oldest elements, those that will be first in the in the
@@ -76,16 +84,19 @@ class CurlStack : std::deque<CurlGet*> {
   using base_type::size;
   using base_type::empty;
 
-  CurlStack();
+  CurlStack(torrent::Poll* poll);
   ~CurlStack();
 
   CurlGet*            new_object();
 
+  void                perform(curl_socket_t sockfd);
   void                perform();
 
   // TODO: Set fd_set's only once?
   unsigned int        fdset(fd_set* readfds, fd_set* writefds, fd_set* exceptfds);
 
+  void*               handle()                               { return m_handle; }
+  torrent::Poll*      poll()                                 { return m_poll; }         
   unsigned int        active() const                         { return m_active; }
   unsigned int        max_active() const                     { return m_maxActive; }
   void                set_max_active(unsigned int a)         { m_maxActive = a; }
@@ -111,12 +122,14 @@ class CurlStack : std::deque<CurlGet*> {
  protected:
   void                add_get(CurlGet* get);
   void                remove_get(CurlGet* get);
+  void                process();
 
  private:
   CurlStack(const CurlStack&);
   void operator = (const CurlStack&);
 
   void*               m_handle;
+  torrent::Poll*      m_poll;
 
   unsigned int        m_active;
   unsigned int        m_maxActive;

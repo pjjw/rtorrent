@@ -77,16 +77,16 @@ PollManagerSelect::poll(rak::timer timeout) {
 
   unsigned int maxFd = static_cast<torrent::PollSelect*>(m_poll)->fdset(m_readSet, m_writeSet, m_errorSet);
 
-  if (!m_httpStack.empty())
-    maxFd = std::max(maxFd, m_httpStack.fdset(m_readSet, m_writeSet, m_errorSet));
+  if (!m_httpStack->empty())
+    maxFd = std::max(maxFd, m_httpStack->fdset(m_readSet, m_writeSet, m_errorSet));
 
   timeval t = timeout.tval();
 
   if (select(maxFd + 1, m_readSet, m_writeSet, m_errorSet, &t) == -1)
     return check_error();
 
-  if (!m_httpStack.empty())
-    m_httpStack.perform();
+  if (!m_httpStack->empty())
+    m_httpStack->perform();
 
   torrent::perform();
   static_cast<torrent::PollSelect*>(m_poll)->perform(m_readSet, m_writeSet, m_errorSet);

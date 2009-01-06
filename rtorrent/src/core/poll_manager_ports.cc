@@ -68,6 +68,7 @@ PollManagerPorts::poll(rak::timer timeout) {
   torrent::perform();
   timeout = std::min(timeout, rak::timer(torrent::next_timeout())) + 1000;
 
+#if 0
   if (!m_httpStack.empty()) {
     // When we're using libcurl we need to use select, but as this is
     // inefficient we try avoiding it whenever possible.
@@ -103,6 +104,7 @@ PollManagerPorts::poll(rak::timer timeout) {
     // Clear the timeout since we've already used it in the select call.
     timeout = rak::timer();
   }
+#endif
 
   // Yes, below is how much code really *should* have been in this
   // function. ;)

@@ -1,6 +1,8 @@
 noinst_LIBRARIES = libsub_core.a
 
 libsub_core_a_SOURCES = \
+	curl_event.cc \
+	curl_event.h \
 	curl_get.cc \
 	curl_get.h \
 	curl_stack.cc \

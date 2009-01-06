@@ -44,13 +44,77 @@
 #include "rak/functional.h"
 #include "curl_get.h"
 #include "curl_stack.h"
+#include "curl_event.h"
+
+#include "poll_manager.h"
 
 namespace core {
 
-CurlStack::CurlStack() :
+#if LIBCURL_VERSION_NUM >= 0x071000
+static void timer_callback(curl_socket_t socket, int action, void* event_data)
+{
+  CurlStack* s = static_cast<CurlStack*>(event_data);
+  CURLM* handle = (CURLM*)(s->handle());
+  CURLMcode rc;
+  int count;
+
+  while (CURLM_CALL_MULTI_PERFORM == (rc = curl_multi_socket(handle, CURL_SOCKET_TIMEOUT, &count)));
+}
+#endif
+
+static int socket_callback(CURL *easy, curl_socket_t socket, int action, void* socket_data, void* assign_data)
+{
+  CurlStack* stack = static_cast<CurlStack*>(socket_data);
+  torrent::Event* event = static_cast<torrent::Event*>(assign_data);
+  torrent::Poll* poll = stack->poll();
+
+  if (!event) {
+    event = new CurlEvent(stack, socket);
+    curl_multi_assign((CURLM*)(stack->handle()), socket, event);
+    if (socket > poll->open_max())
+      throw torrent::internal_error("Socket too large for " + poll->open_max());
+    poll->open(event);
+  } else {
+    poll->remove_read(event);
+    poll->remove_write(event);
+    poll->remove_error(event);
+  }
+
+  switch (action) {
+    case CURL_POLL_NONE:
+      break;
+    case CURL_POLL_IN:
+      poll->insert_read(event);
+      break;
+    case CURL_POLL_OUT:
+      poll->insert_write(event);
+      break;
+    case CURL_POLL_INOUT:
+      poll->insert_read(event);
+      poll->insert_write(event);
+      break;
+    case CURL_POLL_REMOVE:
+      poll->close(event);
+      delete event;
+      break;
+    default:
+      throw torrent::internal_error("socket_callback(...) called with unsupported action");
+  }
+
+  return 0;
+}
+
+CurlStack::CurlStack(torrent::Poll* poll) :
   m_handle((void*)curl_multi_init()),
+  m_poll(poll),
   m_active(0),
   m_maxActive(32) {
+  curl_multi_setopt(m_handle, CURLMOPT_SOCKETDATA, this);
+  curl_multi_setopt(m_handle, CURLMOPT_SOCKETFUNCTION, socket_callback);
+#if LIBCURL_VERSION_NUM >= 0x071000
+  curl_multi_setopt(m_handle, CURLMOPT_TIMERDATA, this);
+  curl_multi_setopt(m_handle, CURLMOPT_TIMERFUNCTION, timer_callback);
+#endif
 }
 
 CurlStack::~CurlStack() {
@@ -66,6 +130,46 @@ CurlStack::new_object() {
 }
 
 void
+CurlStack::process() {
+  int t;
+  CURLMsg* msg;
+
+  while ((msg = curl_multi_info_read((CURLM*)m_handle, &t)) != NULL) {
+    if (msg->msg != CURLMSG_DONE)
+      throw torrent::internal_error("CurlStack::process() msg->msg != CURLMSG_DONE.");
+
+    iterator itr = std::find_if(begin(), end(), rak::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
+
+    if (itr == end())
+      throw torrent::internal_error("Could not find CurlGet with the right easy_handle.");
+        
+    if (msg->data.result == CURLE_OK)
+      (*itr)->signal_done().emit();
+    else
+      (*itr)->signal_failed().emit(curl_easy_strerror(msg->data.result));
+  }
+}
+
+void
+CurlStack::perform(curl_socket_t sockfd) {
+  CURLMcode code;
+
+  do {
+    int count;
+    code = curl_multi_socket((CURLM*)m_handle, sockfd, &count);
+
+    if (code > 0)
+      throw torrent::internal_error("Error calling curl_multi_socket.");
+
+    if ((unsigned int)count != size()) {
+      // Done with some handles.
+      process();
+    }
+
+  } while (code == CURLM_CALL_MULTI_PERFORM);
+}
+
+void
 CurlStack::perform() {
   CURLMcode code;
 
@@ -78,23 +182,7 @@ CurlStack::perform() {
 
     if ((unsigned int)count != size()) {
       // Done with some handles.
-      int t;
-      CURLMsg* msg;
-
-      while ((msg = curl_multi_info_read((CURLM*)m_handle, &t)) != NULL) {
-        if (msg->msg != CURLMSG_DONE)
-          throw torrent::internal_error("CurlStack::perform() msg->msg != CURLMSG_DONE.");
-
-        iterator itr = std::find_if(begin(), end(), rak::equal(msg->easy_handle, std::mem_fun(&CurlGet::handle)));
-
-        if (itr == end())
-          throw torrent::internal_error("Could not find CurlGet with the right easy_handle.");
-        
-        if (msg->data.result == CURLE_OK)
-          (*itr)->signal_done().emit();
-        else
-          (*itr)->signal_failed().emit(curl_easy_strerror(msg->data.result));
-      }
+      process();
     }
 
   } while (code == CURLM_CALL_MULTI_PERFORM);
