@@ -66,14 +66,9 @@ TrackerList::has_active() const {
   return m_itr != end() && (*m_itr)->is_busy();
 }
 
-// Need a custom predicate because the is_usable function is virtual.
-struct tracker_usable_t : public std::unary_function<TrackerList::value_type, bool> {
-  bool operator () (const TrackerList::value_type& value) const { return value->is_usable(); }
-};
-
 bool
 TrackerList::has_usable() const {
-  return std::find_if(begin(), end(), tracker_usable_t()) != end();
+  return find_usable(begin()) != end();
 }
 
 void
@@ -95,6 +90,8 @@ TrackerList::send_state(int s) {
 
   set_state(s);
   m_itr = find_usable(m_itr);
+  if (m_itr == end())
+    m_itr = find_usable(begin());
 
   if (m_itr != end())
     (*m_itr)->send_state(state());
@@ -134,18 +131,12 @@ TrackerList::manual_cancel() {
 
 TrackerList::iterator
 TrackerList::find_usable(iterator itr) {
-  while (itr != end() && !tracker_usable_t()(*itr))
-    ++itr;
-
-  return itr;
+  return std::find_if(itr, end(), std::mem_fun(&Tracker::is_usable));
 }
 
 TrackerList::const_iterator
 TrackerList::find_usable(const_iterator itr) const {
-  while (itr != end() && !tracker_usable_t()(*itr))
-    ++itr;
-
-  return itr;
+  return std::find_if(itr, end(), std::mem_fun(&Tracker::is_usable));
 }
 
 TrackerList::iterator
