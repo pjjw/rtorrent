@@ -85,6 +85,15 @@ AC_DEFUN([TORRENT_WITH_KQUEUE], [
     ])
 ])
 
+AC_DEFUN([TORRENT_WITH_PORTS], [
+  AC_ARG_WITH(ports,
+    [  --with-ports            enable Solaris event ports. [[default=no]]],
+    [
+        if test "$withval" = "yes"; then
+            AC_DEFINE(USE_PORTS, 1, Enable event ports.)
+        fi
+    ])
+])
 
 AC_DEFUN([TORRENT_WITHOUT_VARIABLE_FDSET], [
   AC_ARG_WITH(variable-fdset,

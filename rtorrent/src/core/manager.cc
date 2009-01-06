@@ -69,6 +69,7 @@
 #include "manager.h"
 #include "poll_manager_epoll.h"
 #include "poll_manager_kqueue.h"
+#include "poll_manager_ports.h"
 #include "poll_manager_select.h"
 #include "view.h"
 
@@ -188,6 +189,9 @@ void
 Manager::initialize_first() {
   if ((m_pollManager = PollManagerEPoll::create(sysconf(_SC_OPEN_MAX))) != NULL)
     m_logImportant.push_front("Using 'epoll' based polling.");
+
+  else if ((m_pollManager = PollManagerPorts::create(sysconf(_SC_OPEN_MAX))) != NULL)
+    m_logImportant.push_front("Using 'ports' based polling.");
 
   else if ((m_pollManager = PollManagerKQueue::create(sysconf(_SC_OPEN_MAX))) != NULL)
     m_logImportant.push_front("Using 'kqueue' based polling.");
